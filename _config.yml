@@ -1,0 +1,24 @@
+# Dependencies
+markdown:         redcarpet
+pygments:         true
+
+# Permalinks
+permalink:        pretty
+
+# Setup
+title:            kai cheng
+tagline:          'ios develop blog'
+description:      'kai cheng <a href="https://github.com/kaich" target="_blank">Github</a> will publish some ios third part.I will write some blog about the ios and some github open source.'
+url:              http://lanyon.getpoole.com
+baseurl:          '/'
+paginate:         5
+
+author:
+  name:           'Mark Otto'
+  url:            https://twitter.com/mdo
+
+# Custom vars
+version:          1.0.0
+
+github:
+  repo:           https://github.com/kaich
