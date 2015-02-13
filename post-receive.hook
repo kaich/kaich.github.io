@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# This file is to be used by git repo on server
+# It should be a file called hooks/post-receive in the bare git repo
+
+set -xe  # x表示是打印每一个运行的命令；e表示有任何错误就退出
+
+echo "Running Post Receive Hook"
+
+export GIT_WORK_TREE=$HOME/git/repositories/blog
+export GIT_DIR=${GIT_WORK_TREE}/.git
+
+cd ${GIT_WORK_TREE}
+git fetch origin
+git reset --hard origin/master
+
+# reload my apps
+# pkill -HUP uwsgi
