@@ -4,7 +4,7 @@ title: 复杂的ReactiveCocoa
 ---
 
  
-关于ReactiveCocoa的文章有很多，但是能够从根本上详细介绍它的太少了，基本上没有。甚至看完了都不知道什么叫side effect。关于字面上方法的介绍这里不做讨论，我们具体来分析它的原理和代码的结构分析，看它监听是如何实现的。帮助我们从根本上理解它。
+关于这ReactiveCocoa的文章有很多，但是能够从根本上详细介绍它的太少了，基本上没有。甚至看完了都不知道什么叫side effect。关于字面上方法的介绍这里不做讨论，我们具体来分析它的原理和代码的结构分析，看它监听是如何实现的。帮助我们从根本上理解它。
 关于它的组成有这几个RACSignal, RACSubscriber,RACDisposable这三个主要对象，这是三个基础类，其他基本上都是这三个的子类(当然RACSignal是继承RACStream),其实RACSignal是信号流，是RAC的主要类，RACSubscriber是接受者，RACSignal
 会存储它所有的RACSubscriber,一旦有新的变化RACSignal会通知所有的RACSubscriber，最后RACDisposable是用来清理和释放内存的。
   我们来简单分析一下代码：
