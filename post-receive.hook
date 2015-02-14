@@ -1,8 +1,0 @@
-GIT_REPO=$HOME/git/repositories/blog
-TMP_GIT_CLONE=$HOME/blog
-PUBLIC_WWW=/var/www/blog
-
-git clone $GIT_REPO $TMP_GIT_CLONE
-jekyll build -s $TMP_GIT_CLONE -d $PUBLIC_WWW
-rm -Rf $TMP_GIT_CLONE
-exit
