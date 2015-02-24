@@ -8,6 +8,6 @@ title: Blog Index
 
 <div class="posts">
   {% for post in site.posts %}
-      </p>* <a href="{{ post.url }}">{{ post.title }}</a><span class="pull-right">{{ post.date | date_to_string }}</span></p>
+      </p>* <a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a><span class="pull-right">{{ post.date | date_to_string }}</span></p>
   {% endfor %}
 </div>
