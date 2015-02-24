@@ -16,14 +16,14 @@
   </title>
 
   <!-- CSS -->
-  <link rel="stylesheet" href="/public/css/poole.css">
-  <link rel="stylesheet" href="/public/css/syntax.css">
-  <link rel="stylesheet" href="/public/css/lanyon.css">
+  <link rel="stylesheet" href="./public/css/poole.css">
+  <link rel="stylesheet" href=".//public/css/syntax.css">
+  <link rel="stylesheet" href=".//public/css/lanyon.css">
   <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Serif:400,400italic,700|PT+Sans:400">
 
   <!-- Icons -->
-  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/public/apple-touch-icon-precomposed.png">
-  <link rel="shortcut icon" href="/public/favicon.ico">
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href=".//blog/public/apple-touch-icon-precomposed.png">
+  <link rel="shortcut icon" href=".//public/favicon.ico">
 
   <!-- RSS -->
   <link rel="alternate" type="application/rss+xml" title="RSS" href="/atom.xml">
@@ -43,7 +43,7 @@
   </div>
 
   <nav class="sidebar-nav">
-    <a class="sidebar-nav-item active" href="/">Home</a>
+    <a class="sidebar-nav-item" href="/blog/">Home</a>
 
     
 
@@ -109,7 +109,7 @@
 
     <span class="post-date">29 Jul 2014</span>
 
-    <p>关于ReactiveCocoa的文章有很多，但是能够从根本上详细介绍它的太少了，基本上没有。甚至看完了都不知道什么叫side effect。关于字面上方法的介绍这里不做讨论，我们具体来分析它的原理和代码的结构分析，看它监听是如何实现的。帮助我们从根本上理解它。
+    <p>关于ReactiveCocoa的 文章有很多，但是能够从根本上详细介绍它的太少了，基本上没有。甚至看完了都不知道什么叫side effect。关于字面上方法的介绍这里不做讨论，我们具体来分析它的原理和代码的结构分析，看它监听是如何实现的。帮助我们从根本上理解它。
 关于它的组成有这几个RACSignal, RACSubscriber,RACDisposable这三个主要对象，这是三个基础类，其他基本上都是这三个的子类(当然RACSignal是继承RACStream),其实RACSignal是信号流，是RAC的主要类，RACSubscriber是接受者，RACSignal
 会存储它所有的RACSubscriber,一旦有新的变化RACSignal会通知所有的RACSubscriber，最后RACDisposable是用来清理和释放内存的。
   我们来简单分析一下代码：</p>

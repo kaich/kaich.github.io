@@ -4,7 +4,7 @@
  <title>kai cheng</title>
  <link href="http://lanyon.getpoole.com/atom.xml" rel="self"/>
  <link href="http://lanyon.getpoole.com/"/>
- <updated>2015-02-13T23:18:18+08:00</updated>
+ <updated>2015-02-25T00:03:40+08:00</updated>
  <id>http://lanyon.getpoole.com</id>
  <author>
    <name>Mark Otto</name>
@@ -17,7 +17,7 @@
    <link href="http://lanyon.getpoole.com/2014/07/29/introducing-reactivecocoa/"/>
    <updated>2014-07-29T00:00:00+08:00</updated>
    <id>http://lanyon.getpoole.com/2014/07/29/introducing-reactivecocoa</id>
-   <content type="html">&lt;p&gt;关于ReactiveCocoa的文章有很多，但是能够从根本上详细介绍它的太少了，基本上没有。甚至看完了都不知道什么叫side effect。关于字面上方法的介绍这里不做讨论，我们具体来分析它的原理和代码的结构分析，看它监听是如何实现的。帮助我们从根本上理解它。
+   <content type="html">&lt;p&gt;关于ReactiveCocoa的 文章有很多，但是能够从根本上详细介绍它的太少了，基本上没有。甚至看完了都不知道什么叫side effect。关于字面上方法的介绍这里不做讨论，我们具体来分析它的原理和代码的结构分析，看它监听是如何实现的。帮助我们从根本上理解它。
 关于它的组成有这几个RACSignal, RACSubscriber,RACDisposable这三个主要对象，这是三个基础类，其他基本上都是这三个的子类(当然RACSignal是继承RACStream),其实RACSignal是信号流，是RAC的主要类，RACSubscriber是接受者，RACSignal
 会存储它所有的RACSubscriber,一旦有新的变化RACSignal会通知所有的RACSubscriber，最后RACDisposable是用来清理和释放内存的。
   我们来简单分析一下代码：&lt;/p&gt;
