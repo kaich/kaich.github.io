@@ -9,7 +9,7 @@ title: 复杂的ReactiveCocoa
 会存储它所有的RACSubscriber,一旦有新的变化RACSignal会通知所有的RACSubscriber，最后RACDisposable是用来清理和释放内存的。
   我们来简单分析一下代码：
   
-  ![code1](./assets/2014-07-29-01.png)
+  ![code1]({{site.baseurl}}/assets/2014-07-29-01.png)
 
 我们可以看到，其实RACSignal创建的是它的子类RACDynamicSignal。我们再跟进去它的另一个方法
 ![code1]({{site.baseurl}}/assets/2014-07-29-02.png)
