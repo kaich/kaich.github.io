@@ -16,17 +16,17 @@
   </title>
 
   <!-- CSS -->
-  <link rel="stylesheet" href="/blog/public/css/poole.css">
-  <link rel="stylesheet" href="/blog/public/css/syntax.css">
-  <link rel="stylesheet" href="/blog/public/css/lanyon.css">
+  <link rel="stylesheet" href="/public/css/poole.css">
+  <link rel="stylesheet" href="/public/css/syntax.css">
+  <link rel="stylesheet" href="/public/css/lanyon.css">
   <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Serif:400,400italic,700|PT+Sans:400">
 
   <!-- Icons -->
-  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/blog/public/apple-touch-icon-precomposed.png">
-  <link rel="shortcut icon" href="/blog/public/favicon.ico">
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/public/apple-touch-icon-precomposed.png">
+  <link rel="shortcut icon" href="/public/favicon.ico">
 
   <!-- RSS -->
-  <link rel="alternate" type="application/rss+xml" title="RSS" href="/blog/atom.xml">
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="/atom.xml">
 </head>
 
 
@@ -43,7 +43,7 @@
   </div>
 
   <nav class="sidebar-nav">
-    <a class="sidebar-nav-item" href="/blog">Home</a>
+    <a class="sidebar-nav-item" href="">Home</a>
 
     
 
@@ -55,7 +55,7 @@
     
       
         
-          <a class="sidebar-nav-item" href="/blog/about/">About</a>
+          <a class="sidebar-nav-item" href="/about/">About</a>
         
       
     
@@ -63,7 +63,7 @@
     
       
         
-          <a class="sidebar-nav-item" href="/blog/BlogIndex/">Blog Index</a>
+          <a class="sidebar-nav-item" href="/BlogIndex/">Blog Index</a>
         
       
     
@@ -106,20 +106,20 @@
 会存储它所有的RACSubscriber,一旦有新的变化RACSignal会通知所有的RACSubscriber，最后RACDisposable是用来清理和释放内存的。
   我们来简单分析一下代码：</p>
 
-<p><img src="/blog/assets/2014-07-29-01.png" alt="code1"></p>
+<p><img src="/assets/2014-07-29-01.png" alt="code1"></p>
 
 <p>我们可以看到，其实RACSignal创建的是它的子类RACDynamicSignal。我们再跟进去它的另一个方法
-<img src="/blog/assets/2014-07-29-02.png" alt="code1"></p>
+<img src="/assets/2014-07-29-02.png" alt="code1"></p>
 
 <p>我们看到了如下的方法，首先通过nextblock 创建一个RACSubscriber对象，然后进行了subscribe操作，那么这个操作是什么作用了？应该是对RACSubscriber的相关处理，在RACSignal 中subcribe方法是空，因为创建实际上穿件的是RACDynamicSignal，所以我们跟进到它的sbucribe方法中。</p>
 
-<p><img src="/blog/assets/2014-07-29-03.png" alt="code1"></p>
+<p><img src="/assets/2014-07-29-03.png" alt="code1"></p>
 
 <p>我们主要看标注的地方，上面的<em>subscribers储存所有加入的RACSubscriber,然后下面的方法，我们仔细观察它调用了self.didSubscribe(subscriber),来回调我们刚刚创建RACSignal的那个didsubcribe的block。接下来我们进行关键的步骤，分析它是如何监听的：
 #define RACObserve(TARGET, KEYPATH) \    [(id)(TARGET) rac</em>valuesForKeyPath:@keypath(TARGET, KEYPATH) observer:self]
 监听的宏定义，在NSObject+RACPropertySubscribing.h中,然后一直跟进去，由于调用太频繁了，具体跟踪就不写了。最后我们可以在NSObject+RACKVOWrapper的里面发现这样一个方法</p>
 
-<p><img src="/blog/assets/2014-07-29-04.png" alt="code1"></p>
+<p><img src="/assets/2014-07-29-04.png" alt="code1"></p>
 
 <p>然后我们再跟进RACKVOTrampoline中,会发现一个特别的东西里面的原理了，原来也是通过调用KVO来实现的。在RACKVOTrampoline的
 observeValueForKeyPath:ofObject:change:context:
@@ -129,7 +129,7 @@ observeValueForKeyPath:ofObject:change:context:
 
   
   <!-- 多说评论框 start -->
-	<div class="ds-thread" data-thread-key=/2014/07/29/introducing-reactivecocoa data-title=复杂的ReactiveCocoa data-url=/blog/2014/07/29/introducing-reactivecocoa/></div>
+	<div class="ds-thread" data-thread-key=/2014/07/29/introducing-reactivecocoa data-title=复杂的ReactiveCocoa data-url=/2014/07/29/introducing-reactivecocoa/></div>
 <!-- 多说评论框 end -->
 <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
 <script type="text/javascript">
