@@ -17,7 +17,7 @@
 
   <!-- CSS -->
   <link rel="stylesheet" href="/public/css/poole.css">
-  <link rel="stylesheet" href="/public/css/syntax.css">
+  <link rel="stylesheet" href="/public/css/pygments.css">
   <link rel="stylesheet" href="/public/css/lanyon.css">
   <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Serif:400,400italic,700|PT+Sans:400">
 
@@ -27,6 +27,8 @@
 
   <!-- RSS -->
   <link rel="alternate" type="application/rss+xml" title="RSS" href="/atom.xml">
+  
+ 
 </head>
 
 
@@ -112,28 +114,68 @@
     <p>关于ReactiveCocoa的 文章有很多，但是能够从根本上详细介绍它的太少了，基本上没有。甚至看完了都不知道什么叫side effect。关于字面上方法的介绍这里不做讨论，我们具体来分析它的原理和代码的结构分析，看它监听是如何实现的。帮助我们从根本上理解它。
 关于它的组成有这几个RACSignal, RACSubscriber,RACDisposable这三个主要对象，这是三个基础类，其他基本上都是这三个的子类(当然RACSignal是继承RACStream),其实RACSignal是信号流，是RAC的主要类，RACSubscriber是接受者，RACSignal
 会存储它所有的RACSubscriber,一旦有新的变化RACSignal会通知所有的RACSubscriber，最后RACDisposable是用来清理和释放内存的。
-  我们来简单分析一下代码：</p>
+  我们来简单分析一下代码：          </p>
+<div class="highlight"><pre><code class="objc language-objc" data-lang="objc"><span class="k">+</span> <span class="p">(</span><span class="n">RACSignal</span> <span class="o">*</span><span class="p">)</span><span class="nf">createSignal:</span><span class="p">(</span><span class="n">RACDisposable</span> <span class="o">*</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">RACSubscriber</span><span class="o">&gt;</span> <span class="n">subscriber</span><span class="p">))</span><span class="nv">didSubscribe</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">RACDynamicSignal</span> <span class="n">createSignal</span><span class="o">:</span><span class="n">didSubscribe</span><span class="p">];</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>我们可以看到，其实RACSignal创建的是它的子类RACDynamicSignal。我们再跟进去它的另一个方法</p>
+<div class="highlight"><pre><code class="objc language-objc" data-lang="objc"><span class="k">-</span> <span class="p">(</span><span class="n">RACDisposable</span> <span class="o">*</span><span class="p">)</span><span class="nf">subscribe:</span><span class="p">(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">RACSubscriber</span><span class="o">&gt;</span><span class="p">)</span><span class="nv">subscriber</span> <span class="p">{</span>
+    <span class="n">NSCAssert</span><span class="p">(</span><span class="nb">NO</span><span class="p">,</span> <span class="s">@&quot;This method must be overridden by subclasses&quot;</span><span class="p">);</span>
+    <span class="k">return</span> <span class="nb">nil</span><span class="p">;</span>
+<span class="p">}</span>
 
-<p><img src="/assets/2014-07-29-01.png" alt="code1"></p>
+<span class="k">-</span> <span class="p">(</span><span class="n">RACDisposable</span> <span class="o">*</span><span class="p">)</span><span class="nf">subscribeNext:</span><span class="p">(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">x</span><span class="p">))</span><span class="nv">nextBlock</span> <span class="p">{</span>
+    <span class="n">NSCParameterAssert</span><span class="p">(</span><span class="n">nextBlock</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">);</span>
 
-<p>我们可以看到，其实RACSignal创建的是它的子类RACDynamicSignal。我们再跟进去它的另一个方法
-<img src="/assets/2014-07-29-02.png" alt="code1"></p>
-
+    <span class="n">RACSubscriber</span> <span class="o">*</span><span class="n">o</span> <span class="o">=</span> <span class="p">[</span><span class="n">RACSubscriber</span> <span class="n">subscriberWithNext</span><span class="o">:</span><span class="n">nextBlock</span> <span class="n">error</span><span class="o">:</span><span class="nb">NULL</span> <span class="n">completed</span><span class="o">:</span><span class="nb">NULL</span><span class="p">];</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">self</span> <span class="n">subscribe</span><span class="o">:</span><span class="n">o</span><span class="p">];</span>
+<span class="p">}</span>   
+</code></pre></div>
 <p>我们看到了如下的方法，首先通过nextblock 创建一个RACSubscriber对象，然后进行了subscribe操作，那么这个操作是什么作用了？应该是对RACSubscriber的相关处理，在RACSignal 中subcribe方法是空，因为创建实际上穿件的是RACDynamicSignal，所以我们跟进到它的sbucribe方法中。</p>
+<div class="highlight"><pre><code class="objc language-objc" data-lang="objc"><span class="k">-</span> <span class="p">(</span><span class="n">RACDisposable</span> <span class="o">*</span><span class="p">)</span><span class="nf">subscribe:</span><span class="p">(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">RACSubscriber</span><span class="o">&gt;</span><span class="p">)</span><span class="nv">subscriber</span> <span class="p">{</span>
+    <span class="n">NSCParameterAssert</span><span class="p">(</span><span class="n">subscriber</span> <span class="o">!=</span> <span class="nb">nil</span><span class="p">);</span>
 
-<p><img src="/assets/2014-07-29-03.png" alt="code1"></p>
+    <span class="n">RACCompoundDisposable</span> <span class="o">*</span><span class="n">disposable</span> <span class="o">=</span> <span class="p">[</span><span class="n">RACCompoundDisposable</span> <span class="n">compoundDisposable</span><span class="p">];</span>
+    <span class="n">subscriber</span> <span class="o">=</span> <span class="p">[[</span><span class="n">RACPassthroughSubscriber</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">initWithSubscriber</span><span class="o">:</span><span class="n">subscriber</span> <span class="n">signal</span><span class="o">:</span><span class="n">self</span> <span class="n">disposable</span><span class="o">:</span><span class="n">disposable</span><span class="p">];</span>
 
+    <span class="k">if</span> <span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">didSubscribe</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">RACDisposable</span> <span class="o">*</span><span class="n">schedulingDisposable</span> <span class="o">=</span> <span class="p">[</span><span class="n">RACScheduler</span><span class="p">.</span><span class="n">subscriptionScheduler</span> <span class="n">schedule</span><span class="o">:^</span><span class="p">{</span>
+            <span class="n">RACDisposable</span> <span class="o">*</span><span class="n">innerDisposable</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="n">didSubscribe</span><span class="p">(</span><span class="n">subscriber</span><span class="p">);</span>
+            <span class="p">[</span><span class="n">disposable</span> <span class="n">addDisposable</span><span class="o">:</span><span class="n">innerDisposable</span><span class="p">];</span>
+        <span class="p">}];</span>
+
+        <span class="p">[</span><span class="n">disposable</span> <span class="n">addDisposable</span><span class="o">:</span><span class="n">schedulingDisposable</span><span class="p">];</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">disposable</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
 <p>我们主要看标注的地方，上面的<em>subscribers储存所有加入的RACSubscriber,然后下面的方法，我们仔细观察它调用了self.didSubscribe(subscriber),来回调我们刚刚创建RACSignal的那个didsubcribe的block。接下来我们进行关键的步骤，分析它是如何监听的：
 #define RACObserve(TARGET, KEYPATH) \    [(id)(TARGET) rac</em>valuesForKeyPath:@keypath(TARGET, KEYPATH) observer:self]
 监听的宏定义，在NSObject+RACPropertySubscribing.h中,然后一直跟进去，由于调用太频繁了，具体跟踪就不写了。最后我们可以在NSObject+RACKVOWrapper的里面发现这样一个方法</p>
+<div class="highlight"><pre><code class="objc language-objc" data-lang="objc"><span class="n">NSKeyValueObservingOptions</span> <span class="n">trampolineOptions</span> <span class="o">=</span> <span class="p">(</span><span class="n">options</span> <span class="o">|</span> <span class="n">NSKeyValueObservingOptionPrior</span><span class="p">)</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">NSKeyValueObservingOptionInitial</span><span class="p">;</span>
+<span class="n">RACKVOTrampoline</span> <span class="o">*</span><span class="n">trampoline</span> <span class="o">=</span> <span class="p">[[</span><span class="n">RACKVOTrampoline</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">initWithTarget</span><span class="o">:</span><span class="n">self</span> <span class="n">observer</span><span class="o">:</span><span class="n">strongObserver</span> <span class="n">keyPath</span><span class="o">:</span><span class="n">keyPathHead</span> <span class="n">options</span><span class="o">:</span><span class="n">trampolineOptions</span> <span class="n">block</span><span class="o">:^</span><span class="p">(</span><span class="kt">id</span> <span class="n">trampolineTarget</span><span class="p">,</span> <span class="kt">id</span> <span class="n">trampolineObserver</span><span class="p">,</span> <span class="n">NSDictionary</span> <span class="o">*</span><span class="n">change</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// If this is a prior notification, clean up all the callbacks added to the</span>
+    <span class="c1">// previous value and call the callback block. Everything else is deferred</span>
+    <span class="c1">// until after we get the notification after the change.</span>
+    <span class="k">if</span> <span class="p">([</span><span class="n">change</span><span class="p">[</span><span class="n">NSKeyValueChangeNotificationIsPriorKey</span><span class="p">]</span> <span class="n">boolValue</span><span class="p">])</span> <span class="p">{</span>
+        <span class="p">[</span><span class="n">firstComponentDisposable</span><span class="p">()</span> <span class="n">dispose</span><span class="p">];</span>
 
-<p><img src="/assets/2014-07-29-04.png" alt="code1"></p>
+        <span class="k">if</span> <span class="p">((</span><span class="n">options</span> <span class="o">&amp;</span> <span class="n">NSKeyValueObservingOptionPrior</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">block</span><span class="p">([</span><span class="n">trampolineTarget</span> <span class="n">valueForKeyPath</span><span class="o">:</span><span class="n">keyPath</span><span class="p">],</span> <span class="n">change</span><span class="p">,</span> <span class="nb">NO</span><span class="p">,</span> <span class="n">keyPathHasOneComponent</span><span class="p">);</span>
+        <span class="p">}</span>
 
+        <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>   
+
+    <span class="n">NSString</span> <span class="o">*</span> <span class="n">name</span> <span class="o">=</span> <span class="p">[[</span><span class="n">NSString</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="p">];</span>
+</code></pre></div>
 <p>然后我们再跟进RACKVOTrampoline中,会发现一个特别的东西里面的原理了，原来也是通过调用KVO来实现的。在RACKVOTrampoline的
 observeValueForKeyPath:ofObject:change:context:
 会调用传进来的block ，block 里面调用RACSubscriber的sendNext方法。里面会调用RACSubscriber next block。整个流程就是这样了。分析了具体原理，以后的具体方法我们应该都可以结合注释看懂了。</p>
 
-<p>关于这篇是仓促之下写下的，以后会吧图片替换成code，并且修缮这篇blog。</p>
+<p>关于这篇是仓促之下写下的，以后会吧图片替换成code，并且修缮这blog。</p>
 
     
       <!-- 多说评论框 start -->
@@ -189,5 +231,6 @@ var duoshuoQuery = {short_name:"kaich"};
         }, false);
       })(document);
     </script>
+    
   </body>
 </html>
