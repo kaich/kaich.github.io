@@ -148,6 +148,17 @@ jekyll serve
 
 <p>Jekyll默认是用的<code>Pygments</code>来生成代码块高亮的，<code>Pygments</code>支持100多种语言，使用起来相对于比较方便。但是它的使用会直接破坏markdown的风格。
 它使用方式如下：</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">```c
+/* hello world demo */
+#include &lt;stdio.h&gt;
+int main(int argc, char **argv)
+{
+    printf(&quot;Hello, World!\n&quot;);
+    return 0;
+}
+```
+</code></pre></div>
+<p>会产生如下效果</p>
 
 <div class="highlight"><pre><code class="c">    <span class="cm">/* hello world demo */</span>
     <span class="err">#</span><span class="n">include</span> <span class="o">&lt;</span><span class="n">stdio</span><span class="p">.</span><span class="n">h</span><span class="o">&gt;</span>
@@ -159,23 +170,12 @@ jekyll serve
     
 </code></pre></div>
 
-<p>或者这样使用</p>
-<div class="highlight"><pre><code class="text language-text" data-lang="text">```c
-/* hello world demo */
-#include &lt;stdio.h&gt;
-int main(int argc, char **argv)
-{
-    printf(&quot;Hello, World!\n&quot;);
-    return 0;
-}
-```
-</code></pre></div>
 <p>如果你这样使用在markdown编辑器中预览的时候，你会看到很丑陋的页面风格。但是在Jekyll站定中打开的时候，页面就是正常的(所以说它破坏了markdown的封装)。</p>
 
 <p>至于更换代码显示的风格可以调用如下命令生成CSS。</p>
 <div class="highlight"><pre><code class="text language-text" data-lang="text">pygmentize -S monokai -f html &gt; your/path/pygments.css  
 </code></pre></div>
-<p>，然后包含到你blog的default.html中</p>
+<p>然后包含到你blog的default.html中</p>
 <div class="highlight"><pre><code class="text language-text" data-lang="text">&lt;link rel=&quot;stylesheet&quot; href=&quot;/your/path/pygments.css&quot;&gt;
 </code></pre></div>
 <p><em>注意: 如果之前有包含Pygments的CSS记得去掉他，或者在包含的时候直接替换掉它</em>  </p>
@@ -183,6 +183,38 @@ int main(int argc, char **argv)
 <p>详细类容请参考<a href="http://havee.me/internet/2013-08/support-pygments-in-jekyll.html">Jekyll语法高亮</a></p>
 
 <h6>google code prettify</h6>
+
+<p><a href="https://code.google.com/p/google-code-prettify/">google code prettify</a>使用方法很简单，他可以自动识别语言，不需要想pygments一样需要表明。可以镶嵌代码块的时候保持了markdown的语言格式。但是它本身提供的语言支持相比pygments要少得多，但是你可以自己写扩展。如果你有兴趣你可以尝试写。关于使用可以直接包含run_prettify.js代码</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">&lt;script src=&quot;https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js&quot;&gt;&lt;/script&gt;
+</code></pre></div>
+<p>或者我们直接通过下载代码到博客的目录中进行本地包含。在定义博客内容的html的body的最后包含如下脚本</p>
+<div class="highlight"><pre><code class="js language-js" data-lang="js"><span class="o">&lt;</span><span class="nx">link</span> <span class="nx">rel</span><span class="o">=</span><span class="s2">&quot;stylesheet&quot;</span> <span class="nx">href</span><span class="o">=</span><span class="s2">&quot;/public/js/prettify/prettify.css&quot;</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="nx">script</span> <span class="nx">src</span><span class="o">=</span><span class="s2">&quot;/public/js/prettify/prettify.js&quot;</span><span class="o">&gt;&lt;</span><span class="err">/script&gt;</span>
+<span class="o">&lt;</span><span class="nx">script</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;text/javascript&quot;</span><span class="o">&gt;</span>
+  <span class="nx">$</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
+    <span class="nx">$</span><span class="p">(</span><span class="s2">&quot;pre&quot;</span><span class="p">).</span><span class="nx">addClass</span><span class="p">(</span><span class="s2">&quot;prettyprint linenums&quot;</span><span class="p">);</span>
+    <span class="nx">prettyPrint</span><span class="p">();</span>
+  <span class="p">});</span>
+<span class="o">&lt;</span><span class="err">/script&gt;</span>
+</code></pre></div>
+<p>代码中的路径根据你自己的博客中<code>prettify.css</code>和<code>prettify.js</code>的文件路径来正确填写。</p>
+
+<p>到此为止你可以良好的在你本地搭建器jekyll服务器并写博客了，以及学会了如果控制代码的高亮。整个jekyll都是用css来调整版面，代码高亮算是一个额外的内容。学会它，基本在jekyll调整版面的时候不会遇到太大的问题了。关于代码高亮我也是先试了下prettify，然后才再次使用pygments的。算是有个大概了解了。    </p>
+
+<h6>评论</h6>
+
+<p>一般的博客，别人看了之后或多或少免不了有疑问，这样我们就需要评论系统。很多国外博客都用<a href="https://disqus.com">Disqus</a>,但是他对国内的社交平台支持的不太好。因此我是使用的<a href="http://duoshuo.com">多说</a>.下面来添加多说。关于步骤以下有详细介绍，这里就不多说了，请看传送门 ： 
+<a href="http://havee.me/internet/2013-07/add-duoshuo-commemt-system-into-jekyll.html">添加多说评论</a>    </p>
+
+<p>到目前为止已经可以在本地运行起来一个相对完整的博客了。</p>
+
+<h6>发布你的博客</h6>
+
+<p>想要发布博客，你必须先要有一台服务器。如果有资金可以直接购买服务器。资金相对短缺就可以考虑购买vps，会相对比较便宜。域名可以在国内购买。假设有了服务器。我们就可以把你本地的博客放到服务器上面去了。这里使用的是<a href="http://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks">git hook</a>来进行自动部署的。步骤这里已经很详细了就不再赘述了，在此过程中可能需要linux的相关知识辅助，传送门 ： <a href="http://yifanes.github.io/%E5%85%B6%E4%BB%96%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/%E8%AF%B4%E8%AF%B4%E6%88%91%E6%98%AF%E5%A6%82%E4%BD%95%E9%83%A8%E7%BD%B2vps%2Bjekyll%2Bgit%E6%90%AD%E5%BB%BA%E8%BF%99%E4%B8%AA%E5%8D%9A%E5%AE%A2%E7%9A%84/">Jekyll自动部署</a>  </p>
+
+<p>还有另一种方式来进行部署，具体我还没时间研究，传送门先给出来，有时间的可以研究下： <a href="http://segmentfault.com/blog/p_chou/1190000000455473">Gitolite实现自动发布</a> 、<a href="http://www.ossxp.com/doc/git/gitolite.html">Gitolite构建Git服务器</a>    </p>
+
+<p>能完成自己的blog配置的整个过程，非常感谢各位热爱分享的精神，以及众多资料的帮助。</p>
 
     
       <!-- 多说评论框 start -->
