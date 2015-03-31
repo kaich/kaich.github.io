@@ -75,7 +75,7 @@ title: 学习Swift
 * 用a[1] = b 改变Array元素的值 或者用 a[1…3] = [b,c,d] 形式来进行连续赋值
 * Array遍历：
 
-    ```siwft
+    ```swift
 	for​ (​index​, ​value​) ​in​ ​enumerate​(​shoppingList​) {
 	​	​println​(​"Item ​\(​index​ + ​1​)​: ​\(​value​)​"​)
 	​}
