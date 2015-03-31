@@ -12,40 +12,40 @@ title: 学习Swift
 		   
 * 主要作用：nil 可以适用于任何option类型和类，我们可以在if或者其他的状态变化中用nil来做判断 ，如下：
 * 
-	    ```swift
-		​let​ ​convertedNumber​ = ​possibleNumber​.​toInt​()
-		 if​ ​convertedNumber​ != ​nil​ {
-		​			 ​println​(​"convertedNumber contains some integer value."​)
-		​ }
-		​		 // prints "convertedNumber contains some integer value.”
-		可以通过optional变量后面加！来告诉编译器已经确认它必定不为nil，如果为nil编译器会报错
-		```
+    ```swift
+	​let​ ​convertedNumber​ = ​possibleNumber​.​toInt​()
+	 if​ ​convertedNumber​ != ​nil​ {
+	​			 ​println​(​"convertedNumber contains some integer value."​)
+	​ }
+	​		 // prints "convertedNumber contains some integer value.”
+	可以通过optional变量后面加！来告诉编译器已经确认它必定不为nil，如果为nil编译器会报错
+	```
 	
 
 * 基础操作：
   * %可以用于浮点型  “a = (b × some multiplier) + remainder”
   * a..<b  和  a…b 符号的加入 半开运算符比较实用于0 开始的数组，如下：
 
-        ```swift
-		“​let​ ​names​ = [​"Anna"​, ​"Alex"​, ​"Brian"​, ​"Jack"​]
-		​let​ ​count​ = ​names​.​count
-		​for​ ​i​ ​in​ ​0​..<​count​ {
-		​	​println​(​"Person ​\(​i​ + ​1​)​ is called ​\(​names​[​i​])​"​)
-		​}
-		​// Person 1 is called Anna
-		​// Person 2 is called Alex
-		​// Person 3 is called Brian
-		​// Person 4 is called Jack”
-		```
+    ```swift
+	“​let​ ​names​ = [​"Anna"​, ​"Alex"​, ​"Brian"​, ​"Jack"​]
+	​let​ ​count​ = ​names​.​count
+	​for​ ​i​ ​in​ ​0​..<​count​ {
+	​	​println​(​"Person ​\(​i​ + ​1​)​ is called ​\(​names​[​i​])​"​)
+	​}
+	​// Person 1 is called Anna
+	​// Person 2 is called Alex
+	​// Person 3 is called Brian
+	​// Person 4 is called Jack”
+	```
 
 *  === 和 !== 运算符来判断是否是同一个变量
    = 没有任何返回值
      
-        ```swift
-		​if​ ​x​ = ​y​ {
-		​	​// this is not valid, because x = y does not return a value
-		​}
-		```
+    ```swift
+	​if​ ​x​ = ​y​ {
+	​	​// this is not valid, because x = y does not return a value
+	​}
+	```
 
 * ?? 空合并运算符， a ?? b 等价于 “a​ != ​nil​ ? ​a​! : ​b“ 。需要注意的是 b 必须和 a 中的值是一个类型的	
 在逻辑运算符中可以 直接 if a && b || c || d 这样连续，但是在oc中是不可以的。
@@ -62,13 +62,13 @@ title: 学习Swift
 ######Array:
 * 在swift中集合是又类型的。不论是显示(Array<SomeType>)还是隐式生成。例如一定你第一个插入了Int 你不能再插入非Int的类型了。而它也带了一个好处：不是只能插入类。他们都是结构体
        
-       ```swift
-		Array :
-		Array显示定义以及初始化：
-		 “var​ ​shoppingList​: [​String​] = [​"Eggs"​, ​"Milk"​]”
-		 “​var​ ​threeDoubles​ = [​Double​](​count​: ​3​, ​repeatedValue​: ​0.0​)”
-		 var​ ​someInts​ = [​Int​]()
-		 ```
+    ```swift
+	Array :
+	Array显示定义以及初始化：
+	 “var​ ​shoppingList​: [​String​] = [​"Eggs"​, ​"Milk"​]”
+	 “​var​ ​threeDoubles​ = [​Double​](​count​: ​3​, ​repeatedValue​: ​0.0​)”
+	 var​ ​someInts​ = [​Int​]()
+	 ```
 
 * 用+=向Array中添加元素
 * Array之间可以 + 相加
@@ -162,31 +162,31 @@ reversed​ = ​sorted​(​names​) { ​$0​ > ​$1​ }
 #####枚举：
 swift中枚举不会自定赋0、1、2 ...的默认值，首字母必须大写
 
-		```swift
-		​enum​ ​CompassPoint​ {
-		​	​case​ ​North
-		​	​case​ ​South
-		​	​case​ ​East
-		​	​case​ ​West
-		​}
-		```swift
+```swift
+​enum​ ​CompassPoint​ {
+​	​case​ ​North
+​	​case​ ​South
+​	​case​ ​East
+​	​case​ ​West
+​}
+```swift
 		
 或者
 
-	```swift
-	enum​ ​Planet​ {
-	​	​case​ ​Mercury​, ​Venus​, ​Earth​, ​Mars​, ​Jupiter​, ​Saturn​, ​Uranus​, ​Neptune
-	​}
-	```
+```swift
+enum​ ​Planet​ {
+​	​case​ ​Mercury​, ​Venus​, ​Earth​, ​Mars​, ​Jupiter​, ​Saturn​, ​Uranus​, ​Neptune
+​}
+```
 
 * 每一个enum的成员都可以是其他的任何类型，它可以让使用者存储附加信息。例如：
 
-	```swift
-	“​enum​ ​Barcode​ {
-	​	​case​ ​UPCA​(​Int​, ​Int​, ​Int​, ​Int​)
-	​	​case​ ​QRCode​(​String​)
-	​}
-	```
+```swift
+enum​ ​Barcode​ {
+​	​case​ ​UPCA​(​Int​, ​Int​, ​Int​, ​Int​)
+​	​case​ ​QRCode​(​String​)
+​}
+```
 	
 * 可以通过raw value 来获取enum的值，它返回的是optional值，raw value 为了让使用者和c 模式一样，直接通过 1，2，3，4...来比较. 例如
 
@@ -255,8 +255,10 @@ class​ ​StepCounter​ {
 ```
 
 * 类型成员变量，也就是object-c中的类静态变量。用static 关键字修饰，如果在类里面用class 修饰
-
-		“​	​static​ ​var​ ​storedTypeProperty​ = ​"Some value."
-		”
+    
+    ```swift
+	static​ ​var​ ​storedTypeProperty​ = ​"Some value.
+	```
+		
 * 类，结构体和枚举类型都可以定义方法
 
