@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 搭建Jekyll博客
+title: Swift记要
 ---
 
 ####新特性： 
