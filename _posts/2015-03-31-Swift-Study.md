@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 学习Swift
+title: 学Swift
 ---
 
 ####新特性： 
