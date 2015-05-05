@@ -11,7 +11,7 @@ title:            kai cheng
 tagline:          'ios develop blog'
 description:      'kai cheng <a href="https://github.com/kaich" target="_blank">Github</a> will publish some ios third part.I will write some blog about the ios and some github open source.'
 url:              http://lanyon.getpoole.com
-baseurl:          '/blog'
+baseurl:          '/'
 paginate:         5
 
 author:
