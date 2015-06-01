@@ -1,3 +1,4 @@
+---
 layout: post
 title: 写简化工作的工具
 ---
