@@ -9,7 +9,7 @@ title: react native 开发IOS
 ####我学react natvie经历
 我从看到报道，从而接触react native，到写一个小的IOS应用，其中历时仅仅两周的时间，基本可以做到日常app中的基本UI布局，请求（json 和 xml，官方只介绍了json请求怎么请求），第三方包安装，使用和修改。无论是ios native开发或者使用react native开发，能达到这样的程度就基本满足日常所需了。下面是关于react native 的一段实例代码：
 
-	```js
+	```jsp
 	var React = require('react-native');
 	var { TabBarIOS, NavigatorIOS } = React;
 	
