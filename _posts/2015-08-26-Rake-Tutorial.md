@@ -50,3 +50,55 @@ Rake现在就会知道这个文件任务已经执行过了，不会重复执行�
 
 
 ###运行其他的任务
+
+Rake任务可以采取的形式有先决条件和可以依赖于另一个任务。下面是早晨要做的事情：
+
+1. 关闹钟(Turn off alarm clock)
+2. 整理自己(Groom myself)
+3. 煮咖啡(Make coffee)
+4. 遛狗(Walk dog)
+
+我们按照顺序做以上的几件事情，用Rake来描述如下：
+
+	task :turn_off_alarm do
+	   puts "Turned off alarm. Would have liked 5 more minutes, though."
+	 end
+	
+	 task :groom_myself do
+	   puts "Brushed teeth."
+	   puts "Showered."
+	   puts "Shaved."
+	 end
+	
+	 task :make_coffee do
+	   cups = ENV["COFFEE_CUPS"] || 2
+	   puts "Made #{cups} cups of coffee. Shakes are gone."
+	 end
+	
+	 task :walk_dog do
+	   puts "Dog walked."
+	 end
+	
+	 task :ready_for_the_day => [:turn_off_alarm, :groom_myself, :make_coffee, :walk_dog] do
+	   puts "Ready for the day!"
+	 end
+	 
+如果我输入`rake ready_for_the_day`，会看到如下输出:
+
+	[jason@brick:~/src]$ rake ready_for_the_day
+	 (in /Users/jason/src)
+	 Turned off alarm. Would have liked 5 more minutes, though.
+	 Brushed teeth.
+	 Showered.
+	 Shaved.
+	 Made 5 cups of coffee. Shakes are gone.
+	 Dog walked.
+	 Ready for the day!
+	 
+通过运行`ready_for_the_day`任务会发现`turn_off_alarm`, `groom_myself`, `make_coffee`, `walk_dog tasks`是`ready_for_the_day`任务的先决条件，而且它完全是按照我们写的顺序执行的。你会发现我们可以传值给`make_coffee`任务。我们可以通过如下形式传值给`COFFEE_CUPS`环境变量：
+
+	 [jason@brick:~/src]$ rake COFFEE_CUPS=5 make_coffee
+	 (in /Users/jason/src)
+	 Made 5 cups of coffee. Shakes are gone.
+
+###命名空间
