@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  <!-- Enable responsiveness on mobile devices-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <title>
+    
+      学Swift &middot; kai cheng
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/public/css/poole.css">
+  <link rel="stylesheet" href="/public/css/pygments.css">
+  <link rel="stylesheet" href="/public/css/lanyon.css">
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Serif:400,400italic,700|PT+Sans:400">
+
+  <!-- Icons -->
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/public/apple-touch-icon-precomposed.png">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+
+  <!-- RSS -->
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="/atom.xml">
+  
+ 
+</head>
+
+
+  <body>
+
+    <!-- Target for toggling the sidebar `.sidebar-checkbox` is for regular
+     styles, `#sidebar-checkbox` for behavior. -->
+<input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+<!-- Toggleable sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-item">
+    <p>kai cheng <a href="https://github.com/kaich" target="_blank">Github</a> will publish some ios third part.I will write some blog about the ios and some github open source.</p>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a class="sidebar-nav-item" href="/">Home</a>
+
+    
+
+    
+    
+      
+        
+      
+    
+      
+        
+          <a class="sidebar-nav-item" href="/BlogIndex/">Blog Index</a>
+        
+      
+    
+      
+        
+          <a class="sidebar-nav-item" href="/about/">About</a>
+        
+      
+    
+      
+    
+      
+        
+      
+    
+      
+        
+      
+    
+
+    <!--<a class="sidebar-nav-item" href="https://github.com/kaich/archive/v1.0.0.zip">Download</a>-->
+    <a class="sidebar-nav-item" href="https://github.com/kaich">GitHub project</a>
+    <span class="sidebar-nav-item">Currently v1.0.0</span>
+  </nav>
+
+  <div class="sidebar-item">
+    <p>
+      &copy; 2015. All rights reserved.
+    </p>
+  </div>
+</div>
+
+
+    <!-- Wrap is the content to shift when toggling the sidebar. We wrap the
+         content to avoid any CSS collisions with our real content. -->
+    <div class="wrap">
+      <div class="masthead">
+        <div class="container">
+          <h3 class="masthead-title">
+            <a href="/" title="Home">kai cheng</a>
+            <small>ios develop blog</small>
+          </h3>
+        </div>
+      </div>
+
+      <div class="container content">
+        <div class="post">
+  <h1 class="post-title">学Swift</h1>
+  <span class="post-date">31 Mar 2015</span>
+  <h4>新特性：</h4>
+
+<h5>基础类型：</h5>
+
+<ul>
+<li>常用基本类型 Int  Double  Float Turple 类型都是结构体了。它们可以和类一样拥有自己的方法，但是在进行表达式的类型转换的时候，swift中必须显示转换</li>
+<li><p>对于option主要是用于状态的判断,它不能直接用于运算，如果没有初始值会自动为nil。表现方式如下：  </p>
+
+<p>“​var​ ​serverResponseCode​: ​Int​? = ​404”</p></li>
+<li><p>主要作用：nil 可以适用于任何option类型和类，我们可以在if或者其他的状态变化中用nil来做判断 ，如下：</p></li>
+<li><div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="err">​</span><span class="k">let</span><span class="err">​</span> <span class="err">​</span><span class="n">convertedNumber</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="n">possibleNumber</span><span class="err">​</span><span class="p">.</span><span class="err">​</span><span class="n">toInt</span><span class="err">​</span><span class="p">()</span>
+ <span class="k">if</span><span class="err">​</span> <span class="err">​</span><span class="n">convertedNumber</span><span class="err">​</span> <span class="o">!=</span> <span class="err">​</span><span class="nb">nil</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span>          <span class="err">​</span><span class="n">println</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="s">&quot;convertedNumber contains some integer value.&quot;</span><span class="err">​</span><span class="p">)</span>
+<span class="err">​</span> <span class="p">}</span>
+<span class="err">​</span>      <span class="c1">// prints &quot;convertedNumber contains some integer value.”</span>
+<span class="err">可以通过</span><span class="n">optional</span><span class="err">变量后面加！来告诉编译器已经确认它必定不为</span><span class="nb">nil</span><span class="err">，如果为</span><span class="nb">nil</span><span class="err">编译器会报错</span>
+</code></pre></div></li>
+<li><p>基础操作：</p>
+
+<ul>
+<li>%可以用于浮点型  “a = (b × some multiplier) + remainder”</li>
+<li>a..&lt;b  和  a…b 符号的加入 半开运算符比较实用于0 开始的数组，如下：</li>
+</ul>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="err">“​</span><span class="k">let</span><span class="err">​</span> <span class="err">​</span><span class="n">names</span><span class="err">​</span> <span class="o">=</span> <span class="p">[</span><span class="err">​</span><span class="s">&quot;Anna&quot;</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="s">&quot;Alex&quot;</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="s">&quot;Brian&quot;</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="s">&quot;Jack&quot;</span><span class="err">​</span><span class="p">]</span>
+<span class="err">​</span><span class="k">let</span><span class="err">​</span> <span class="err">​</span><span class="n">count</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="n">names</span><span class="err">​</span><span class="p">.</span><span class="err">​</span><span class="n">count</span>
+<span class="err">​</span><span class="k">for</span><span class="err">​</span> <span class="err">​</span><span class="n">i</span><span class="err">​</span> <span class="err">​</span><span class="k">in</span><span class="err">​</span> <span class="err">​</span><span class="mi">0</span><span class="err">​</span><span class="p">..</span><span class="o">&lt;</span><span class="err">​</span><span class="n">count</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span> <span class="err">​</span><span class="n">println</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="s">&quot;Person ​\(​i​ + ​1​)​ is called ​\(​names​[​i​])​&quot;</span><span class="err">​</span><span class="p">)</span>
+<span class="err">​</span><span class="p">}</span>
+<span class="err">​</span><span class="c1">// Person 1 is called Anna</span>
+<span class="err">​</span><span class="c1">// Person 2 is called Alex</span>
+<span class="err">​</span><span class="c1">// Person 3 is called Brian</span>
+<span class="err">​</span><span class="c1">// Person 4 is called Jack”</span>
+</code></pre></div></li>
+<li><p>=== 和 !== 运算符来判断是否是同一个变量
+= 没有任何返回值</p>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="err">​</span><span class="k">if</span><span class="err">​</span> <span class="err">​</span><span class="n">x</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="n">y</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span> <span class="err">​</span><span class="c1">// this is not valid, because x = y does not return a value</span>
+<span class="err">​</span><span class="p">}</span>
+</code></pre></div></li>
+<li><p>?? 空合并运算符， a ?? b 等价于 “a​ != ​nil​ ? ​a​! : ​b“ 。需要注意的是 b 必须和 a 中的值是一个类型的<br>
+在逻辑运算符中可以 直接 if a &amp;&amp; b || c || d 这样连续，但是在oc中是不可以的。</p></li>
+</ul>
+
+<h5>字符串：</h5>
+
+<ul>
+<li>字符串在swift中是值类型，而并非指针类型。它在传值的时候会被拷贝。(因为String 式结构体，结构体和类的区别就是传值的时候结构体是拷贝的<br></li>
+<li>+ 运算符加入</li>
+<li>\() 在字符串中填写表达式进行字符串的插入</li>
+<li>countElements可以计算出字符串的个数，能够正确兼容Unicode，在object-C length 方法在计算中文的时候一个字length是2</li>
+</ul>
+
+<h5>集合：</h5>
+
+<h6>Array:</h6>
+
+<ul>
+<li><p>在swift中集合是又类型的。不论是显示(Array<SomeType>)还是隐式生成。例如一定你第一个插入了Int 你不能再插入非Int的类型了。而它也带了一个好处：不是只能插入类。他们都是结构体</p>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="nl">Array</span> <span class="p">:</span>
+<span class="n">Array</span><span class="err">显示定义以及初始化：</span>
+ <span class="err">“</span><span class="k">var</span><span class="err">​</span> <span class="err">​</span><span class="n">shoppingList</span><span class="err">​</span><span class="o">:</span> <span class="p">[</span><span class="err">​</span><span class="n">String</span><span class="err">​</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="err">​</span><span class="s">&quot;Eggs&quot;</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="s">&quot;Milk&quot;</span><span class="err">​</span><span class="p">]</span><span class="err">”</span>
+ <span class="err">“​</span><span class="k">var</span><span class="err">​</span> <span class="err">​</span><span class="n">threeDoubles</span><span class="err">​</span> <span class="o">=</span> <span class="p">[</span><span class="err">​</span><span class="n">Double</span><span class="err">​</span><span class="p">](</span><span class="err">​</span><span class="n">count</span><span class="err">​</span><span class="o">:</span> <span class="err">​</span><span class="mi">3</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">repeatedValue</span><span class="err">​</span><span class="o">:</span> <span class="err">​</span><span class="mf">0.0</span><span class="err">​</span><span class="p">)</span><span class="err">”</span>
+ <span class="k">var</span><span class="err">​</span> <span class="err">​</span><span class="n">someInts</span><span class="err">​</span> <span class="o">=</span> <span class="p">[</span><span class="err">​</span><span class="n">Int</span><span class="err">​</span><span class="p">]()</span>
+</code></pre></div></li>
+<li><p>用+=向Array中添加元素</p></li>
+<li><p>Array之间可以 + 相加</p></li>
+<li><p>用a[1] = b 改变Array元素的值 或者用 a[1…3] = [b,c,d] 形式来进行连续赋值</p></li>
+<li><p>Array遍历：</p>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">for</span><span class="err">​</span> <span class="p">(</span><span class="err">​</span><span class="n">index</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">value</span><span class="err">​</span><span class="p">)</span> <span class="err">​</span><span class="k">in</span><span class="err">​</span> <span class="err">​</span><span class="n">enumerate</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="n">shoppingList</span><span class="err">​</span><span class="p">)</span> <span class="p">{</span>
+<span class="err">​</span> <span class="err">​</span><span class="n">println</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="s">&quot;Item ​\(​index​ + ​1​)​: ​\(​value​)​&quot;</span><span class="err">​</span><span class="p">)</span>
+<span class="err">​</span><span class="p">}</span>
+</code></pre></div></li>
+</ul>
+
+<h6>Dictinary:</h6>
+
+<ul>
+<li>hash 值是由 == 来决定的</li>
+<li>swift中使用“[key 1: value 1, key 2: value 2, key 3: value 3]”来定义dictionary。 而不是Object-c 中的{key1 : value1 , key2 : value2 } ，</li>
+<li>a[b] = c形式进行赋值</li>
+<li><p>遍历：</p>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">for</span><span class="err">​</span> <span class="p">(</span><span class="err">​</span><span class="n">airportCode</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">airportName</span><span class="err">​</span><span class="p">)</span> <span class="err">​</span><span class="k">in</span><span class="err">​</span> <span class="err">​</span><span class="n">airports</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span> <span class="err">​</span><span class="n">println</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="s">&quot;​\(​airportCode​)​: ​\(​airportName​)​&quot;</span><span class="err">​</span><span class="p">)</span>
+<span class="err">​</span><span class="p">}</span>
+</code></pre></div></li>
+</ul>
+
+<h5>控制：</h5>
+
+<ul>
+<li>Turple作为判断条件的时候比较特殊，具体看教程</li>
+<li>switch 中 可以默认不用写break，他会自己break。 break的作用作于你想提前break。 fallthrough关键字能够让switch判断继续向下走而不是break了,他不会判断下个case的条件，而是直接执行下个case里面的代码</li>
+<li><p>可以用如下进行复杂的流程控制，循环和switch嵌套的话，continue、  ， 用来控制作用于那个（这个功能非常有用)</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">“label name: while condition {
+    statements
+}”
+</code></pre></div></li>
+</ul>
+
+<h5>函数：</h5>
+
+<ul>
+<li>func 可以返回Turple 类型，也就是返回多值</li>
+<li><p>func 可以带外部名称 ，函数内部必须用 localParameterName  调用函数的时候用 externalParameterName 。 当两者名字一样的时候直接在名字前面加#</p>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">func</span><span class="err">​</span> <span class="err">​</span><span class="n">someFunction</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="n">externalParameterName</span><span class="err">​</span> <span class="err">​</span><span class="n">localParameterName</span><span class="err">​</span><span class="o">:</span> <span class="err">​</span><span class="n">Int</span><span class="err">​</span><span class="p">)</span> <span class="p">{</span>
+<span class="err">​</span> <span class="err">​</span><span class="c1">// function body goes here, and can use localParameterName</span>
+<span class="err">​</span> <span class="err">​</span><span class="c1">// to refer to the argument value for that parameter</span>
+<span class="err">​</span><span class="p">}</span>
+</code></pre></div></li>
+<li><p>func 可以带可变参数 … ,可变参数放到最后一个</p></li>
+<li><p>参数默认是常量，你不可以改变它。 你也可以设置变量，但是他是本身copy的一个新变量。 如果你想在函数里面更改传入参数的值，那么在定义参数的时候加关键字inout . 注意：在swift中参数的传递已经不区分深复制和浅复制了，只有没有加inout，都不会修改原来传递的值。而object-c中如果传入的是对象或者集合都是可以改变原值的。swift让用户显示调用，更加安全。</p></li>
+<li><p>函数可以作为变量使用，可以作为参数传入函数，可以作为返回值</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">“var​ ​mathFunction​: (​Int​, ​Int​) -&gt; ​Int​ = ​addTwoInts”
+</code></pre></div></li>
+<li><p>函数可以嵌套定义。就是函数里面定义函数，这是一种特殊形式的闭包</p></li>
+</ul>
+
+<h5>闭包：</h5>
+
+<ul>
+<li><p>闭包无名称函数</p>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="p">{</span> <span class="p">(</span><span class="n">parameters</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="k">return</span> <span class="n">type</span> <span class="k">in</span>
+    <span class="n">statements</span>
+<span class="p">}</span>
+</code></pre></div></li>
+<li><p>它可以根据上下文来判断参数和返回值的类型，可以简化</p></li>
+</ul>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="err">​</span><span class="n">reversed</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="n">sorted</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="n">names</span><span class="err">​</span><span class="p">,</span> <span class="p">{</span> <span class="p">(</span><span class="err">​</span><span class="n">s1</span><span class="err">​</span><span class="o">:</span> <span class="err">​</span><span class="n">String</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">s2</span><span class="err">​</span><span class="o">:</span> <span class="err">​</span><span class="n">String</span><span class="err">​</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="err">​</span><span class="n">Bool</span><span class="err">​</span> <span class="err">​</span><span class="k">in</span><span class="err">​</span> <span class="err">​</span><span class="k">return</span><span class="err">​</span> <span class="err">​</span><span class="n">s1</span><span class="err">​</span> <span class="o">&gt;</span> <span class="err">​</span><span class="n">s2</span><span class="err">​</span> <span class="p">}</span> <span class="p">)</span>
+</code></pre></div>
+<p>简化成
+<code>swift
+    ​reversed​ = ​sorted​(​names​, { ​s1​, ​s2​ ​in​ ​return​ ​s1​ &gt; ​s2​ } )
+</code>
+单个表达式的闭包可以自动return，我们可以省略return 
+<code>swift
+​reversed​ = ​sorted​(​names​, { ​s1​, ​s2​ ​in​ ​s1​ &gt; ​s2​ } )
+</code>
+闭包提供了一个速记的参数形式$1 $2 $3 ,分别代表第一个，第二个，第三个参数
+<code>swift
+reversed​ = ​sorted​(​names​, { ​$0​ &gt; ​$1​ } )
+</code>
+由于String 实现了 &gt; 方法，所以简化为
+<code>swift
+​reversed​ = ​sorted​(​names​, &gt;)
+</code>
+尾部闭包，主要作用于让函数体比较大的闭包方便显示
+<code>swift
+reversed​ = ​sorted​(​names​) { ​$0​ &gt; ​$1​ }
+</code>
+* 闭包捕获上下午的值是引用，而不是copy</p>
+
+<h5>枚举：</h5>
+
+<p>swift中枚举不会自定赋0、1、2 ...的默认值，首字母必须大写</p>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="err">​</span><span class="k">enum</span><span class="err">​</span> <span class="err">​</span><span class="n">CompassPoint</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span> <span class="err">​</span><span class="k">case</span><span class="err">​</span> <span class="err">​</span><span class="n">North</span>
+<span class="err">​</span> <span class="err">​</span><span class="k">case</span><span class="err">​</span> <span class="err">​</span><span class="n">South</span>
+<span class="err">​</span> <span class="err">​</span><span class="k">case</span><span class="err">​</span> <span class="err">​</span><span class="n">East</span>
+<span class="err">​</span> <span class="err">​</span><span class="k">case</span><span class="err">​</span> <span class="err">​</span><span class="n">West</span>
+<span class="err">​</span><span class="p">}</span>
+</code></pre></div>
+<p>或者</p>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">enum</span><span class="err">​</span> <span class="err">​</span><span class="n">Planet</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span> <span class="err">​</span><span class="k">case</span><span class="err">​</span> <span class="err">​</span><span class="n">Mercury</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">Venus</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">Earth</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">Mars</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">Jupiter</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">Saturn</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">Uranus</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">Neptune</span>
+<span class="err">​</span><span class="p">}</span>
+</code></pre></div>
+<ul>
+<li>每一个enum的成员都可以是其他的任何类型，它可以让使用者存储附加信息。例如：</li>
+</ul>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">enum</span><span class="err">​</span> <span class="err">​</span><span class="n">Barcode</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span> <span class="err">​</span><span class="k">case</span><span class="err">​</span> <span class="err">​</span><span class="n">UPCA</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="n">Int</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">Int</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">Int</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">Int</span><span class="err">​</span><span class="p">)</span>
+<span class="err">​</span> <span class="err">​</span><span class="k">case</span><span class="err">​</span> <span class="err">​</span><span class="n">QRCode</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="n">String</span><span class="err">​</span><span class="p">)</span>
+<span class="err">​</span><span class="p">}</span>
+</code></pre></div>
+<ul>
+<li><p>可以通过raw value 来获取enum的值，它返回的是optional值，raw value 为了让使用者和c 模式一样，直接通过 1，2，3，4...来比较. 例如</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">“​let​ ​possiblePlanet​ = ​Planet​(​rawValue​: ​7​)”
+</code></pre></div></li>
+</ul>
+
+<h5>类和结构体：</h5>
+
+<ul>
+<li>类比结构体多的功能：
+
+<ul>
+<li>继承</li>
+<li>类型转换 列入  a = (String *) </li>
+<li>Deinitializers释放实例占有的资源</li>
+<li>引用数可以大于1 。 （结构体是copy，所以只有1）</li>
+<li>对于Stuct 可以，直接用成员初始化，而class不行</li>
+</ul></li>
+</ul>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="err">“</span><span class="k">struct</span><span class="err">​</span> <span class="err">​</span><span class="n">Resolution</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span> <span class="err">​</span><span class="k">var</span><span class="err">​</span> <span class="err">​</span><span class="n">width</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="mi">0</span>
+<span class="err">​</span> <span class="err">​</span><span class="k">var</span><span class="err">​</span> <span class="err">​</span><span class="n">height</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="mi">0</span>
+<span class="err">​</span><span class="p">}</span>
+<span class="k">let</span><span class="err">​</span> <span class="err">​</span><span class="n">vga</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="n">Resolution</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="n">width</span><span class="err">​</span><span class="o">:</span> <span class="err">​</span><span class="mi">640</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">height</span><span class="err">​</span><span class="o">:</span> <span class="err">​</span><span class="mi">480</span><span class="err">​</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li>特性：
+成员变量中可以用 lazy 关键字进行修饰，它表示延迟加载，只有当第一次调用该成员变量的时候，该成员变量才会被创建。</li>
+</ul>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="n">lazy</span><span class="err">​</span> <span class="err">​</span><span class="k">var</span><span class="err">​</span> <span class="err">​</span><span class="n">importer</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="n">DataImporter</span><span class="err">​</span><span class="p">()</span>
+</code></pre></div>
+<p>计算属性格式 ，set函数没有参数，默认有个值 newValue可以提供使用：</p>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">struct</span><span class="err">​</span> <span class="err">​</span><span class="n">AlternativeRect</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span> <span class="err">​</span><span class="k">var</span><span class="err">​</span> <span class="err">​</span><span class="n">origin</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="n">Point</span><span class="err">​</span><span class="p">()</span>
+<span class="err">​</span> <span class="err">​</span><span class="k">var</span><span class="err">​</span> <span class="err">​</span><span class="n">size</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="n">Size</span><span class="err">​</span><span class="p">()</span>
+<span class="err">​</span> <span class="err">​</span><span class="k">var</span><span class="err">​</span> <span class="err">​</span><span class="n">center</span><span class="err">​</span><span class="o">:</span> <span class="err">​</span><span class="n">Point</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span>     <span class="err">​</span><span class="kr">get</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span>         <span class="err">​</span><span class="k">let</span><span class="err">​</span> <span class="err">​</span><span class="n">centerX</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="n">origin</span><span class="err">​</span><span class="p">.</span><span class="err">​</span><span class="n">x</span><span class="err">​</span> <span class="o">+</span> <span class="p">(</span><span class="err">​</span><span class="n">size</span><span class="err">​</span><span class="p">.</span><span class="err">​</span><span class="n">width</span><span class="err">​</span> <span class="o">/</span> <span class="err">​</span><span class="mi">2</span><span class="err">​</span><span class="p">)</span>
+<span class="err">​</span>         <span class="err">​</span><span class="k">let</span><span class="err">​</span> <span class="err">​</span><span class="n">centerY</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="n">origin</span><span class="err">​</span><span class="p">.</span><span class="err">​</span><span class="n">y</span><span class="err">​</span> <span class="o">+</span> <span class="p">(</span><span class="err">​</span><span class="n">size</span><span class="err">​</span><span class="p">.</span><span class="err">​</span><span class="n">height</span><span class="err">​</span> <span class="o">/</span> <span class="err">​</span><span class="mi">2</span><span class="err">​</span><span class="p">)</span>
+<span class="err">​</span>         <span class="err">​</span><span class="k">return</span><span class="err">​</span> <span class="err">​</span><span class="n">Point</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="n">x</span><span class="err">​</span><span class="o">:</span> <span class="err">​</span><span class="n">centerX</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">y</span><span class="err">​</span><span class="o">:</span> <span class="err">​</span><span class="n">centerY</span><span class="err">​</span><span class="p">)</span>
+<span class="err">​</span>     <span class="p">}</span>
+<span class="err">​</span>     <span class="err">​</span><span class="kr">set</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span>         <span class="err">​</span><span class="n">origin</span><span class="err">​</span><span class="p">.</span><span class="err">​</span><span class="n">x</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="n">newValue</span><span class="err">​</span><span class="p">.</span><span class="err">​</span><span class="n">x</span><span class="err">​</span> <span class="o">-</span> <span class="p">(</span><span class="err">​</span><span class="n">size</span><span class="err">​</span><span class="p">.</span><span class="err">​</span><span class="n">width</span><span class="err">​</span> <span class="o">/</span> <span class="err">​</span><span class="mi">2</span><span class="err">​</span><span class="p">)</span>
+<span class="err">​</span>         <span class="err">​</span><span class="n">origin</span><span class="err">​</span><span class="p">.</span><span class="err">​</span><span class="n">y</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="n">newValue</span><span class="err">​</span><span class="p">.</span><span class="err">​</span><span class="n">y</span><span class="err">​</span> <span class="o">-</span> <span class="p">(</span><span class="err">​</span><span class="n">size</span><span class="err">​</span><span class="p">.</span><span class="err">​</span><span class="n">height</span><span class="err">​</span> <span class="o">/</span> <span class="err">​</span><span class="mi">2</span><span class="err">​</span><span class="p">)</span>
+<span class="err">​</span>     <span class="p">}</span>
+<span class="err">​</span> <span class="p">}</span>
+<span class="err">​</span><span class="p">}</span>
+</code></pre></div>
+<ul>
+<li>只读属性直接在计算属性的基础上，写函数体然后return就可以了</li>
+<li>属性监听，willSet , didSet 。 在willSet 中可以用newValue来获取新值，在didSet中可以用oldValue获取旧值，如果在didSet中给该属性赋值，他会替换刚刚付的值</li>
+</ul>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">class</span><span class="err">​</span> <span class="err">​</span><span class="n">StepCounter</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span> <span class="err">​</span><span class="k">var</span><span class="err">​</span> <span class="err">​</span><span class="n">totalSteps</span><span class="err">​</span><span class="o">:</span> <span class="err">​</span><span class="n">Int</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="mi">0</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span>     <span class="err">​</span><span class="kr">willSet</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="n">newTotalSteps</span><span class="err">​</span><span class="p">)</span> <span class="p">{</span>
+<span class="err">​</span>         <span class="err">​</span><span class="n">println</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="s">&quot;About to set totalSteps to ​\(​newTotalSteps​)​&quot;</span><span class="err">​</span><span class="p">)</span>
+<span class="err">​</span>     <span class="p">}</span>
+<span class="err">​</span>     <span class="err">​</span><span class="kr">didSet</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span>         <span class="err">​</span><span class="k">if</span><span class="err">​</span> <span class="err">​</span><span class="n">totalSteps</span><span class="err">​</span> <span class="o">&gt;</span> <span class="err">​</span><span class="n">oldValue</span><span class="err">​</span>  <span class="p">{</span>
+<span class="err">​</span>             <span class="err">​</span><span class="n">println</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="s">&quot;Added ​\(​totalSteps​ - ​oldValue​)​ steps&quot;</span><span class="err">​</span><span class="p">)</span>
+<span class="err">​</span>         <span class="p">}</span>
+<span class="err">​</span>     <span class="p">}</span>
+<span class="err">​</span> <span class="p">}</span>
+<span class="err">​</span><span class="p">}</span>
+</code></pre></div>
+<ul>
+<li><p>类型成员变量，也就是object-c中的类静态变量。用static 关键字修饰，如果在类里面用class 修饰</p>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">static</span><span class="err">​</span> <span class="err">​</span><span class="k">var</span><span class="err">​</span> <span class="err">​</span><span class="n">storedTypeProperty</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="s">&quot;Some value.</span>
+</code></pre></div></li>
+<li><p>类，结构体和枚举类型都可以定义方法</p></li>
+</ul>
+
+  
+  <!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key=/2015/03/31/Swift-Study data-title=学Swift data-url=/2015/03/31/Swift-Study/></div>
+<!-- 多说评论框 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"kaich"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+
+<!-- 网站分析  -->
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-61579283-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+<!-- 网站分析  end-->
+  
+</div>
+
+<div class="related">
+  <h2>Related Posts</h2>
+  <ul class="related-posts">
+    
+      <li>
+        <h3>
+          <a href="/2015/08/26/Rake-Tutorial/">
+            Rake 教程
+            <small>26 Aug 2015</small>
+          </a>
+        </h3>
+      </li>
+    
+      <li>
+        <h3>
+          <a href="/2015/08/11/ptgen/">
+            像rails创建IOS模型类
+            <small>11 Aug 2015</small>
+          </a>
+        </h3>
+      </li>
+    
+      <li>
+        <h3>
+          <a href="/2015/05/31/working-tools/">
+            写简化工作的工具
+            <small>31 May 2015</small>
+          </a>
+        </h3>
+      </li>
+    
+  </ul>
+</div>
+
+      </div>
+    </div>
+
+    <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+
+    <script>
+      (function(document) {
+        var toggle = document.querySelector('.sidebar-toggle');
+        var sidebar = document.querySelector('#sidebar');
+        var checkbox = document.querySelector('#sidebar-checkbox');
+
+        document.addEventListener('click', function(e) {
+          var target = e.target;
+
+          if(!checkbox.checked ||
+             sidebar.contains(target) ||
+             (target === checkbox || target === toggle)) return;
+
+          checkbox.checked = false;
+        }, false);
+      })(document);
+    </script>
+    
+  </body>
+</html>

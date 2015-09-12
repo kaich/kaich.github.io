@@ -45,13 +45,19 @@
   </div>
 
   <nav class="sidebar-nav">
-    <a class="sidebar-nav-item" href="">Home</a>
+    <a class="sidebar-nav-item" href="/">Home</a>
 
     
 
     
     
       
+        
+      
+    
+      
+        
+          <a class="sidebar-nav-item" href="/BlogIndex/">Blog Index</a>
         
       
     
@@ -64,8 +70,6 @@
       
     
       
-        
-          <a class="sidebar-nav-item" href="/BlogIndex/">Blog Index</a>
         
       
     
@@ -104,6 +108,999 @@
   
   <div class="post">
     <h1 class="post-title">
+      <a href="/2015/08/26/Rake-Tutorial/">
+        Rake 教程
+      </a>
+    </h1>
+
+    <span class="post-date">26 Aug 2015</span>
+
+    <p>英文原文：<a href="http://jasonseifer.com/2010/04/06/rake-tutorial">Rake Tutorial</a></p>
+
+<p>在学习rails过程中遇到了rake，查看了文档和很多网站也不太清楚rake到底是什么。直到阅读了以上文章才入门rake。于是决定翻译过来，供大家参考。</p>
+
+<p>如果你用Rails开发，你一定或多或少的遇到过rake。这篇博客主要目的是让你知道rake是从何而来和如何在Rails项目中使用它。</p>
+
+<h3>简史</h3>
+
+<p>Rake是<a href="http://onestepback.org/">Jim Weirich</a>的项目。它是一个构建工具。如果你对它的历史有浓厚的兴趣你可以通过<a href="http://rake.rubyforge.org/files/doc/rational_rdoc.html">&quot;rational.rdoc&quot;</a>进行更进一步的了解。Rake本来是想让Makefile里面使用ruby语言，尽管Jim并不深信这个想法，但是它是一个很好的想法。自动构建系统需要什么？通常<a href="https://zh.wikipedia.org/zh-cn/%E7%B5%84%E5%BB%BA%E8%87%AA%E5%8B%95%E5%8C%96">Wikipedia</a>会这样回答：</p>
+
+<blockquote>
+<p>历来开发者们利用构建自动化通过命令行从构建脚本里面去调用编译和链接过程。它是很容易通过命令行传入源文件从而生成最终的产物。但是当尝试按照特定的顺序去编译链接很多源文件的时候，使用命令行就不是那么好的方案了。当一个构建过程变得复杂的时候，开发者开始将围绕呼叫前置和后置动作的编译器，如检查出的版本控制，部署对象复制到测试位置。术语“构建自动化”现在包括管理前置和后置的编译和链接活动，以及编译和链接活动.</p>
+</blockquote>
+
+<h3>依赖</h3>
+
+<p>构建和依赖相关。一个文件或者一系列的文件依赖另外的以一系列文件编译和链接或者在处理下一批之前必须的一些东西。Rake里面同样存在任务之间的依赖。把下面的代码保存到任意目录名为&#39;Rakefile&#39;的文件中</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">directory &quot;tmp&quot;
+
+file &quot;hello.tmp&quot; =&gt; &quot;tmp&quot; do
+  sh &quot;echo &#39;Hello&#39; &gt;&gt; &#39;tmp/hello.tmp&#39;&quot;
+end
+</code></pre></div>
+<p>一个名叫“hello.tmp”的文件依赖于&quot;tmp&quot;文件夹。当我们运行它，首先会产生一个“tmp“文件夹，然后才会执行&quot;hello.tmp&quot;任务。当你运行的时候会有类似如下的输出：</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">[jason@brick:~/src]$ rake hello.tmp
+(in /Users/jason/src)
+echo &#39;Hello&#39; &gt; &#39;tmp/hello.tmp&#39;
+</code></pre></div>
+<p>如果你查看&quot;hello.tmp&quot;里面的内容，你会发现&quot;Hello&quot;。如果你再次运行，会发生什么呢？Rake会再次生成这个文件。因为它不会查找mp/hello.tmp，而是按照定义中的区查找&quot;hello.tmp&quot;。让我们重新定义下：</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text"> directory &quot;tmp&quot;
+
+ file &quot;tmp/hello.tmp&quot; =&gt; &quot;tmp&quot; do
+   sh &quot;echo &#39;Hello&#39; &gt; &#39;tmp/hello.tmp&#39;&quot;
+ end
+</code></pre></div>
+<p>现在如果你运行它两次会看到如下的输出：</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">[jason@brick:~/src]$ rake &quot;tmp/hello.tmp&quot;
+ (in /Users/jason/src)
+ mkdir -p tmp
+ echo &#39;Hello&#39; &gt; &#39;tmp/hello.tmp&#39;
+ [jason@brick:~/src]$ rake &quot;tmp/hello.tmp&quot;
+ (in /Users/jason/src)
+</code></pre></div>
+<p>Rake现在就会知道这个文件任务已经执行过了，不会重复执行任务了。</p>
+
+<h3>运行其他的任务</h3>
+
+<p>Rake任务可以采取的形式有先决条件和可以依赖于另一个任务。下面是早晨要做的事情：</p>
+
+<ol>
+<li>关闹钟(Turn off alarm clock)</li>
+<li>整理自己(Groom myself)</li>
+<li>煮咖啡(Make coffee)</li>
+<li>遛狗(Walk dog)</li>
+</ol>
+
+<p>我们按照顺序做以上的几件事情，用Rake来描述如下：</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">task :turn_off_alarm do
+   puts &quot;Turned off alarm. Would have liked 5 more minutes, though.&quot;
+ end
+
+ task :groom_myself do
+   puts &quot;Brushed teeth.&quot;
+   puts &quot;Showered.&quot;
+   puts &quot;Shaved.&quot;
+ end
+
+ task :make_coffee do
+   cups = ENV[&quot;COFFEE_CUPS&quot;] || 2
+   puts &quot;Made #{cups} cups of coffee. Shakes are gone.&quot;
+ end
+
+ task :walk_dog do
+   puts &quot;Dog walked.&quot;
+ end
+
+ task :ready_for_the_day =&gt; [:turn_off_alarm, :groom_myself, :make_coffee, :walk_dog] do
+   puts &quot;Ready for the day!&quot;
+ end
+</code></pre></div>
+<p>如果我输入<code>rake ready_for_the_day</code>，会看到如下输出:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">[jason@brick:~/src]$ rake ready_for_the_day
+ (in /Users/jason/src)
+ Turned off alarm. Would have liked 5 more minutes, though.
+ Brushed teeth.
+ Showered.
+ Shaved.
+ Made 5 cups of coffee. Shakes are gone.
+ Dog walked.
+ Ready for the day!
+</code></pre></div>
+<p>通过运行<code>ready_for_the_day</code>任务会发现<code>turn_off_alarm</code>, <code>groom_myself</code>, <code>make_coffee</code>, <code>walk_dog tasks</code>是<code>ready_for_the_day</code>任务的先决条件，而且它完全是按照我们写的顺序执行的。你会发现我们可以传值给<code>make_coffee</code>任务。我们可以通过如下形式传值给<code>COFFEE_CUPS</code>环境变量：</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text"> [jason@brick:~/src]$ rake COFFEE_CUPS=5 make_coffee
+ (in /Users/jason/src)
+ Made 5 cups of coffee. Shakes are gone.
+</code></pre></div>
+<h3>命名空间</h3>
+
+<p>Rake支持命名空间，能够让你把类似的任务都放到同一个命名空间里面，然后你通过命名空间去调用里面的任务。在Rails中，你会注意到 <code>db:migrate</code> 任务，在这个例子中<code>db</code>就是命名空间，<code>migrate</code>就是任务。用我们之间的例子，把任务都放到命名空间就是如下：</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text"> namespace :morning do
+   task :turn_of_alarm
+   ....
+ end
+</code></pre></div>
+<p>现在如果你运行<code>rake COFFEE_CUPS=3 morning:ready_for_the_day</code>，你将得到和之前相同的输出，只不过现在是3杯咖啡了（3 cups of coffee ）。</p>
+
+<h3>默认任务</h3>
+
+<p>Rake有默认任务这一概念。它意味着如果你输入rake命令时候没有待任何参数，那么就会运行默认任务。如果我们设置默认任务是：关掉闹钟(urning off the alarm).</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text"> task :default =&gt; &#39;morning:turn_off_alarm&#39;
+</code></pre></div>
+<p>在命令行中输入<code>rake</code>,会得到如下输出：</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">[jason@brick:~/src]$ rake
+(in /Users/jason/src)
+Turned off alarm. Would have liked 5 more minutes, though.
+</code></pre></div>
+<h3>任务描述</h3>
+
+<p>你可以使用<code>desc</code>关键字来描述你的任务，就和其他语言里面的文档注释效果一样。这些描述会在你运行<code>rake -T</code>获得任务列表的时候显示出来。我们来在上面的例子中加入任务描述：</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text"> ...
+  desc &quot;Make coffee&quot;
+  task :make_coffee do
+    cups = ENV[&quot;COFFEE_CUPS&quot;] || 2
+    puts &quot;Made #{cups} cups of coffee. Shakes are gone.&quot;
+  end
+  ...
+</code></pre></div>
+<p>现在在命令行中输入<code>rake -T</code>，你回获得如下输出：</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">  [jason@brick:~/src]$ rake -T
+  (in /Users/jason/src)
+  rake afternoon:make_coffee      # Make afternoon coffee
+  rake morning:groom_myself       # Take care of normal hygeine tasks.
+  rake morning:make_coffee        # Make coffee
+  rake morning:ready_for_the_day  # Get ready for the day
+  rake morning:turn_off_alarm     # Turn off alarm.
+  rake morning:walk_dog           # Walk the dog
+</code></pre></div>
+<p>在显示任务列表的时候我们也可以在后面加上额外的参数去匹配任务。例如<code>rake -T af</code>将会仅仅显示afternoon task。</p>
+
+<h3>任务重定义</h3>
+
+<p>如果你想加点什么到已经存在的任务中该怎么办？例如要在打扮自己的时候打扮一下你的头发(tyling your hair)。你可以定义另外的一个groom_myself任务，加入这一行为:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">  namespace :morning do
+    ....
+    task :groom_myself do
+      puts &quot;Brushed teeth.&quot;
+      puts &quot;Showered.&quot;
+      puts &quot;Shaved.&quot;
+    end
+    ....
+  end
+  ...
+  namespace :morning do
+    task :groom_myself do
+      puts &quot;Styled hair.&quot;
+    end
+  end
+</code></pre></div>
+<p>运行任务，你将会看到：</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">(in /Users/jason/src)
+  Brushed teeth.
+  Showered.
+  Shaved.
+  Styled hair.
+</code></pre></div>
+<h3>调用任务</h3>
+
+<p>有的时候在一个任务里面你想调用另外的一个任务。还是用上面的例子。例如你想下午做咖啡。你只需要在早上做咖啡的基础上输出一行额外的信息：</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">  namespace :afternoon do
+    task :make_coffee do
+      Rake::Task[&#39;morning:make_coffee&#39;].invoke
+      puts &quot;Ready for the rest of the day!&quot;
+    end
+  end
+</code></pre></div>
+<p>它的输出结果如下：</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text"> [jason@brick:~/src]$ rake afternoon:make_coffee COFFEE_CUPS=1
+ (in /Users/jason/src)
+ Made 1 cups of coffee. Shakes are gone.
+ Ready for the rest of the day!
+</code></pre></div>
+<h3>重构</h3>
+
+<p>就如上面的例子有很多代码是在别处定义好了，我们要让方法中直接调用别处定义好的代码，而不是每次都重新定义类似的代码。例如给每个快到期的用户发邮件</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">  namespace :accounts do
+    desc &quot;Email expiring accounts to let them know&quot;
+    task :email_expiring =&gt; :environment do
+      date = ENV[&#39;from&#39;] ? Date.parse(ENV[&#39;from&#39;]) : Date.today
+      accounts = Account.find(:all, :conditions =&gt; [&quot;expiration_date = ?&quot;, date]
+      accounts.each do |account|
+        Notifier.deliver_account_expiration(account)
+      end
+    end
+  end
+</code></pre></div>
+<p>以上方法，给用户发邮件算是通用方法，别处可能会用到，于是我们可以把通用的写到一个方法里面：</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">  namespace :accounts do
+    desc &quot;Email expiring accounts to let them know&quot;
+    task :email_expiring =&gt; :environment do
+      date = ENV[&#39;from&#39;] ? Date.parse(ENV[&#39;from&#39;]) : Date.today
+      Account.notify_expiring(date)
+    end
+  end
+</code></pre></div>
+<p>这样写也更容易让你的代码更具测试性。例如我们可以很方便的测试notify_expiring方法了。</p>
+
+<h3>Rails</h3>
+
+<p>你可以访问你的模型和依赖环境的任务构成的整个环境。例如你可以运行<code>run rake RAILS_ENV=staging db:migrate</code>.Rails自动从lib/tasks查找任务。当执行<code>rake -T</code>的时候，所有.rake扩展名里面的任务都会列出来。</p>
+
+<h3>调度Rake任务</h3>
+
+<p>可以用<a href="https://en.wikipedia.org/wiki/Cron">cron</a>调度rake任务。如果想每天晚上12:15给快过期的用户发邮件，可以这样做：</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">  15 * * * * cd /data/my_app/current &amp;&amp; /usr/bin/rake RAILS_ENV=production accounts:email_expiring
+</code></pre></div>
+<p>这个我也没有研究过。</p>
+
+<h3>派生</h3>
+
+<p>这里就不翻译了</p>
+
+<ul>
+<li><a href="http://github.com/wycats/thor/">Thor</a> is a more class based approach to solving some of the things rake does as far as actual tasks go.</li>
+<li><a href="http://capify.org/">Capistrano</a> is the de facto standard for deploying rails apps. Its syntax is inspired pretty heavily by Rake, but it is definitely not rake.</li>
+</ul>
+
+<h3>Further Reading</h3>
+
+<ul>
+<li><a href="http://blog.jayfields.com/2006/11/ruby-testing-rake-tasks.html">&quot;Testing Rake Tasks&quot;</a> by Jay Fields</li>
+<li><a href="http://www.jbarnette.com/2009/08/27/on-rake.html">&quot;On Rake&quot;</a> by John Barnette</li>
+<li><a href="http://www.claytonlz.com/index.php/2009/04/how-to-setup-rspec-cucumber-webrat-rcov-and-autotest-on-leopard/">How To: Setup RSpec, Cucumber, Webrat, RCov and Autotest on Leopard | Clayton Lengel-Zigich</a></li>
+<li><a href="http://railscasts.com/episodes/66-custom-rake-tasks">Custom Rake Tasks</a> Railscast</li>
+</ul>
+
+<h3>Useful Rake Examples</h3>
+
+<ul>
+<li><a href="http://gist.github.com/359401">Sample Rakefile</a> from this article.</li>
+<li><a href="http://gist.github.com/359401">redis.rake</a> from Resque.
+If you have any more useful rake examples, please let me know and I’ll add them here.</li>
+</ul>
+
+    
+      <!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key= data-title=Home data-url=/></div>
+<!-- 多说评论框 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"kaich"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+    
+  </div>
+  
+  <div class="post">
+    <h1 class="post-title">
+      <a href="/2015/08/11/ptgen/">
+        像rails创建IOS模型类
+      </a>
+    </h1>
+
+    <span class="post-date">11 Aug 2015</span>
+
+    <p>接触ruby是因为它独特灵活的语法，接触rails是因为它奇幻无比的魔法。</p>
+
+<p>在一年之前，从事iOS已经是第三年了,当时自己对ios技术还是比较自信。但是看到github上的各位大牛，掌握着各种各样的技术，而自己也仅仅会ios这一门技术，相比之下不禁也是自惭形秽了。“以铜为镜正衣冠，以人为镜明得失”，有了比较就有了动力，于是终于下定决心学一门脚本语言了。经过各种比较，最终决定是灵活的ruby（也是因为github是ruby写的），到后来慢慢接触了rails并且深深的被rails创建模型的便捷方式给吸引了。可能是ios思想根深蒂固，于是心想为什么不能用rails的方式创建ios模型类呢？同样每次创建的模型类都包含了太多的重复代码，如果你有一定的经验，你会发现你都有自己的一套模型组织方式了。既然模型里面是有迹可循，而且代码重复量大，那么rails创建模型类或许可以大大提高写程序的速度，避免一次次写那些重复的代码。</p>
+
+<p>在rails中创建一个model，可以这样</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">rails g model user name:string age:int sex:string
+</code></pre></div>
+<p>它会创建一个User模型类，包含了name ,age,sex三个属性。那么如何将这样的方式在ios中实现呢。这里有几个问题：</p>
+
+<p>rails 里面这种命令行生成的模型类是基于ActiveRecord的进行json，数据库，属性之间的转换的，而IOS没有
+rails旨在提供一个强大的框架，而我的目的是工具：生产模型类的工具。</p>
+
+<p>这两点就决定了和rails的命令必然有着区别。IOS模型类基本上都肩负着如下的职责：</p>
+
+<ul>
+<li>属性和数据库之间的相互转换</li>
+<li>属性和远端数据(json)的相互转换</li>
+<li>以上两者对于模型类都必须是可选的</li>
+</ul>
+
+<p>开始决定最初的方案是</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">    ptgen [entity_name] -lsd [property]:[sever_property]:[table_column]
+</code></pre></div>
+<p>例如如果要创建一个student模型类，包含name ,age ,sex三个属性，同时要支持服务器端和数据库端转换，那么就会这样写</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">pigeon student -lsd name.string:sname.string:tname  age.int:sage.int:tage sex.string:ssex.string:tsex
+</code></pre></div>
+<p>这样看起来还好，但是我们忽略了很多东西，例如属性的类型，格式化，服务器属性类型，格式化，如果要加上这样一系列的东西，极有可能导致 [property]:[sever<em>property]:[table</em>column]部分极为冗长，可读性变得相当差。于是就思考把它分开，于是有了接下来的模式：</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">ptgen  [entity_name]  -l [property_list]  -s [sever_property_list] -d [table_column_list]
+</code></pre></div>
+<ul>
+<li>【entity_name] 模型类名称<br></li>
+<li> -l local  [property_list]模型类属性列表 </li>
+<li> -s server [sever<em>property</em>list]服务器属性列表</li>
+<li> -d database  [table<em>column</em>list]数据库字段列表</li>
+<li>以上三个列表字段都必须一一对应</li>
+</ul>
+
+<p>例如同样要创建一个student模型类，包含name ,age ,sex三个属性，同时要支持服务器端和数据库端转换，那么就会这样写</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">pigeon student -l name:string age:int sex:string -s sname:string sage:int ssex:string -d tname tage tsex
+</code></pre></div>
+<p>这看起来比上面冗长一些，其实不然。值得注意的是这种方式可读性更强，若还有更多扩展，不会显得冗长而可读性差。于是最终就决定采用这种模式来写命令行。</p>
+
+<h4>模型类里面的构造</h4>
+
+<p>在ios开发有一些经验的人，相比都有适合自己写模型类的方式。虽然有可能会有不同，但是模型类的基本责任还是都差不多的。就上面所提到的</p>
+
+<ul>
+<li>属性和远端数据(json)的相互转换</li>
+<li>属性和数据库之间的相互转换</li>
+<li>以上两者对于模型类都必须是可选的</li>
+</ul>
+
+<h5>属性和远端数据的相互转换</h5>
+
+<p>关于属性和远端json数据的相互转换，我总结了一下，在IOS通常的项目会有三种方式去写：</p>
+
+<ol>
+<li><code>全手动实现</code></li>
+<li><code>全自动映射</code></li>
+<li><code>模板映射</code></li>
+</ol>
+
+<h6>全手动实现</h6>
+
+<p>这种方式应该是最常见的，也是新手最容易使用的形式了。这种方式我们先xcode中创建模型类，然后在.h文件中一行代码一行代码的去声明每一个变量，在.m文件中去实现json到属性的转换过程。例如：</p>
+
+<p>FPTrader.h</p>
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="cp">#import &lt;Foundation/Foundation.h&gt;</span>
+
+<span class="k">@interface</span> <span class="nc">FPTrader</span> : <span class="bp">NSObject</span>
+<span class="k">@property</span><span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span><span class="k">strong</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span><span class="n">traderID</span><span class="p">;</span> <span class="c1">//id</span>
+<span class="k">@property</span><span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span><span class="k">strong</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span><span class="n">account</span><span class="p">;</span>
+<span class="k">@property</span><span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span><span class="k">strong</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span><span class="n">name</span><span class="p">;</span> <span class="c1">//名字</span>
+<span class="k">@property</span><span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span><span class="k">strong</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span><span class="n">address</span><span class="p">;</span> <span class="c1">//地址</span>
+<span class="k">@property</span><span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span><span class="k">strong</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span><span class="n">district</span><span class="p">;</span> <span class="c1">//区域 district</span>
+<span class="k">@property</span><span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span><span class="k">strong</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span> <span class="n">bizDistrict</span><span class="p">;</span>
+<span class="k">@property</span><span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span><span class="k">strong</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span> <span class="n">contractor</span><span class="p">;</span>
+<span class="k">@property</span><span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span><span class="k">strong</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span> <span class="n">email</span><span class="p">;</span>
+<span class="k">@property</span><span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span><span class="k">strong</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span> <span class="n">floor</span><span class="p">;</span>
+<span class="k">@property</span><span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span><span class="k">strong</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span> <span class="n">logourl</span><span class="p">;</span>
+<span class="k">@property</span><span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span><span class="k">strong</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span> <span class="n">mall</span><span class="p">;</span>
+<span class="k">@property</span><span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span><span class="k">strong</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span> <span class="n">mallArea</span><span class="p">;</span>
+<span class="k">@property</span><span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span><span class="k">strong</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span> <span class="n">province</span><span class="p">;</span>
+<span class="k">@property</span><span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span><span class="k">strong</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span> <span class="n">room</span><span class="p">;</span>
+<span class="k">@property</span><span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span><span class="k">strong</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span> <span class="n">telephone</span><span class="p">;</span>
+<span class="k">@property</span><span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span><span class="k">strong</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span> <span class="n">webicp</span><span class="p">;</span>
+<span class="k">@property</span><span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span><span class="k">strong</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span> <span class="n">city</span><span class="p">;</span>
+
+<span class="p">+(</span><span class="n">FPTrader</span> <span class="o">*</span><span class="p">)</span><span class="nf">parseModelWith:</span><span class="p">(</span><span class="bp">NSDictionary</span> <span class="o">*</span><span class="p">)</span><span class="nv">dic</span><span class="p">;</span>
+
+<span class="k">@end</span>
+</code></pre></div>
+<p>FPTrader.m</p>
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="cp">#import &quot;FPTrader.h&quot;</span>
+<span class="cp">#import &quot;FP_Define_Methods.h&quot;</span>
+
+<span class="k">@implementation</span> <span class="nc">FPTrader</span>
+
+
+<span class="p">+(</span><span class="n">FPTrader</span> <span class="o">*</span><span class="p">)</span><span class="nf">parseModelWith:</span><span class="p">(</span><span class="bp">NSDictionary</span> <span class="o">*</span><span class="p">)</span><span class="nv">dic</span><span class="p">{</span>
+    <span class="n">FPTrader</span> <span class="o">*</span> <span class="n">trader</span> <span class="o">=</span> <span class="p">[[</span><span class="n">FPTrader</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="p">];</span>
+
+    <span class="n">trader</span><span class="p">.</span><span class="n">address</span> <span class="o">=</span> <span class="n">DIC_VALUE</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span><span class="s">@&quot;Address&quot;</span><span class="p">);</span>
+    <span class="n">trader</span><span class="p">.</span><span class="n">account</span> <span class="o">=</span> <span class="n">DIC_VALUE</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span><span class="s">@&quot;AlipayAccount&quot;</span><span class="p">);</span>
+    <span class="n">trader</span><span class="p">.</span><span class="n">bizDistrict</span> <span class="o">=</span> <span class="n">DIC_VALUE</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span><span class="s">@&quot;BizDistrict&quot;</span><span class="p">);</span>
+    <span class="n">trader</span><span class="p">.</span><span class="n">city</span> <span class="o">=</span> <span class="n">DIC_VALUE</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span><span class="s">@&quot;City&quot;</span><span class="p">);</span>
+    <span class="n">trader</span><span class="p">.</span><span class="n">contractor</span> <span class="o">=</span> <span class="n">DIC_VALUE</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span><span class="s">@&quot;Contactor&quot;</span><span class="p">);</span>
+    <span class="n">trader</span><span class="p">.</span><span class="n">district</span> <span class="o">=</span> <span class="n">DIC_VALUE</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span><span class="s">@&quot;District&quot;</span><span class="p">);</span>
+    <span class="n">trader</span><span class="p">.</span><span class="n">email</span> <span class="o">=</span> <span class="n">DIC_VALUE</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span><span class="s">@&quot;Email&quot;</span><span class="p">);</span>
+    <span class="n">trader</span><span class="p">.</span><span class="n">floor</span> <span class="o">=</span> <span class="n">DIC_VALUE</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span><span class="s">@&quot;Floor&quot;</span><span class="p">);</span>
+    <span class="n">trader</span><span class="p">.</span><span class="n">logourl</span> <span class="o">=</span> <span class="n">DIC_VALUE</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span><span class="s">@&quot;LogoUrl&quot;</span><span class="p">);</span>
+    <span class="n">trader</span><span class="p">.</span><span class="n">mall</span> <span class="o">=</span> <span class="n">DIC_VALUE</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span><span class="s">@&quot;Mall&quot;</span><span class="p">);</span>
+    <span class="n">trader</span><span class="p">.</span><span class="n">mallArea</span> <span class="o">=</span> <span class="n">DIC_VALUE</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span><span class="s">@&quot;MallArea&quot;</span><span class="p">);</span>
+    <span class="n">trader</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">DIC_VALUE</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span><span class="s">@&quot;Name&quot;</span><span class="p">);</span>
+    <span class="n">trader</span><span class="p">.</span><span class="n">province</span> <span class="o">=</span> <span class="n">DIC_VALUE</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span><span class="s">@&quot;Province&quot;</span><span class="p">);</span>
+    <span class="n">trader</span><span class="p">.</span><span class="n">room</span> <span class="o">=</span> <span class="n">DIC_VALUE</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span><span class="s">@&quot;Room&quot;</span><span class="p">);</span>
+    <span class="n">trader</span><span class="p">.</span><span class="n">traderID</span> <span class="o">=</span> <span class="n">DIC_VALUE</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span><span class="s">@&quot;SupplierId&quot;</span><span class="p">);</span>
+    <span class="n">trader</span><span class="p">.</span><span class="n">telephone</span> <span class="o">=</span> <span class="n">DIC_VALUE</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span><span class="s">@&quot;Telephone&quot;</span><span class="p">);</span>
+    <span class="n">trader</span><span class="p">.</span><span class="n">webicp</span> <span class="o">=</span> <span class="n">DIC_VALUE</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span><span class="s">@&quot;Webicp&quot;</span><span class="p">);</span>
+
+    <span class="k">return</span> <span class="n">trader</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">@end</span>
+</code></pre></div>
+<p>这个例子就是典型的按通常的方式自己手动完全实现。(<i>有的新手写代码会把parseModel里面的代码在每次请求的时候都去手动解析给模型类属性赋值一遍，甚至连请求都不封装，导致大量冗余的代码，这种方式写出来的代码就只能用惨绝人寰来形容了</i>),这种方式写模型类的方式中规中矩，但是存在了一个问题：<code>如果模型类比较多，会出现大量的给模型类赋值（例如trader.address = DIC_VALUE(dic,@&quot;Address&quot;);）这样的代码，模型类比较少的项目，还能接受。但是模型类一旦多起来那就写起来很烦了</code></p>
+
+<h6>全自动映射</h6>
+
+<p>在我们写ios开发有一定经验的时候，我们必定会开始或多或少的接触了object-c的runtime功能，在平常的使用的类库中也或多或少的用到了（只是你不知道而已）.我们完全可以利用runtime来实现远端数据到属性的全自动映射。具体实现方式就不在这里多说了。在model上运用这种方式比较耀眼的是<a href="https://github.com/icanzilb/JSONModel">JSONModel</a>，他完全是全自动映射。下面看看他的使用方式：</p>
+
+<p>假设服务端返回了如下的json数据</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">{&quot;id&quot;:&quot;10&quot;, &quot;country&quot;:&quot;Germany&quot;, &quot;dialCode&quot;: 49, &quot;isInEurope&quot;:true}
+</code></pre></div>
+<p>那我们利用JSONModel直接如下写就行了</p>
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="cp">#import &quot;JSONModel.h&quot;</span>
+
+<span class="k">@interface</span> <span class="nc">CountryModel</span> : <span class="nc">JSONModel</span>
+
+<span class="k">@property</span> <span class="p">(</span><span class="k">assign</span><span class="p">,</span> <span class="k">nonatomic</span><span class="p">)</span> <span class="kt">int</span> <span class="kt">id</span><span class="p">;</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">strong</span><span class="p">,</span> <span class="k">nonatomic</span><span class="p">)</span> <span class="bp">NSString</span><span class="o">*</span> <span class="n">country</span><span class="p">;</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">strong</span><span class="p">,</span> <span class="k">nonatomic</span><span class="p">)</span> <span class="bp">NSString</span><span class="o">*</span> <span class="n">dialCode</span><span class="p">;</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">assign</span><span class="p">,</span> <span class="k">nonatomic</span><span class="p">)</span> <span class="kt">BOOL</span> <span class="n">isInEurope</span><span class="p">;</span>
+
+<span class="k">@end</span>
+</code></pre></div>
+<p>只是简简单单的声明了变量即可，其他事情都不需要我们关心了。   </p>
+
+<p>这么简单了，但是有没有发现它还有问题，每次都要写和json数据一样名字的属性变量，写多了是很烦的。那么是不是可以自动化生成呢。这里就不必我们再自己写了。这里有相关的第三方工具，也有xcode插件供我们选择。
+这里我也推荐两个：</p>
+
+<ul>
+<li><a href="https://github.com/Ahmed-Ali/JSONExport">JSONExport</a></li>
+<li><a href="https://github.com/EnjoySR/ESJsonFormat-Xcode">ESJsonFormat-Xcode</a></li>
+</ul>
+
+<p>JSONExport是mac下的工具软件，支持objct-c ,swift，java语言因为作为单独工具可选项比较多。
+ESJsonFormat-Xcode是一个xcode的插件</p>
+
+<p>那么说到这里是不是<code>全自动化映射</code>这种方式是不是很完美了?利用JSONModel和JSONExport等工具的结合，基本上不需要写代码就可以实现json到属性的映射。我们再来看一种状况：</p>
+
+<p>你们公司的后台是个新手，字段命名都是用的拼音，那么这种方式是否还完美？再如果后台因为需要某些字段要换一个名称，那么我们必须要把这个字段相应属性名称改了，然后把用到这个属性的所有地方都改掉。</p>
+
+<p>看了这些相信有答案了，在大多数情况下全自动映射带给我们非常好的体验，但是偶尔也会给我们带来不必要的困扰。</p>
+
+<h6>模板映射</h6>
+
+<p>模板映射也可以说就是半自动化映射，之所以我把它叫做模板映射是因为它需要写代码的地方都是有迹可循的，就像是模板模式，流程都写好了，知识部分地方需要我们填空而已了。在这里我要介绍的是<a href="https://github.com/Mantle/Mantle">Mantle</a>,废话不多说，先看用法：</p>
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"> <span class="k">typedef</span> <span class="k">enum</span> <span class="o">:</span> <span class="bp">NSUInteger</span> <span class="p">{</span>
+    <span class="n">GHIssueStateOpen</span><span class="p">,</span>
+    <span class="n">GHIssueStateClosed</span>
+<span class="p">}</span> <span class="n">GHIssueState</span><span class="p">;</span>
+
+<span class="k">@interface</span> <span class="nc">GHIssue</span> : <span class="nc">MTLModel</span> <span class="o">&lt;</span><span class="n">MTLJSONSerializing</span><span class="o">&gt;</span>
+
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">copy</span><span class="p">,</span> <span class="k">readonly</span><span class="p">)</span> <span class="bp">NSURL</span> <span class="o">*</span><span class="n">URL</span><span class="p">;</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">copy</span><span class="p">,</span> <span class="k">readonly</span><span class="p">)</span> <span class="bp">NSURL</span> <span class="o">*</span><span class="n">HTMLURL</span><span class="p">;</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">copy</span><span class="p">,</span> <span class="k">readonly</span><span class="p">)</span> <span class="bp">NSNumber</span> <span class="o">*</span><span class="n">number</span><span class="p">;</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">assign</span><span class="p">,</span> <span class="k">readonly</span><span class="p">)</span> <span class="n">GHIssueState</span> <span class="n">state</span><span class="p">;</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">copy</span><span class="p">,</span> <span class="k">readonly</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span><span class="n">reporterLogin</span><span class="p">;</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">strong</span><span class="p">,</span> <span class="k">readonly</span><span class="p">)</span> <span class="n">GHUser</span> <span class="o">*</span><span class="n">assignee</span><span class="p">;</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">copy</span><span class="p">,</span> <span class="k">readonly</span><span class="p">)</span> <span class="bp">NSDate</span> <span class="o">*</span><span class="n">updatedAt</span><span class="p">;</span>
+
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">copy</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span><span class="n">title</span><span class="p">;</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">copy</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span><span class="n">body</span><span class="p">;</span>
+
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">copy</span><span class="p">,</span> <span class="k">readonly</span><span class="p">)</span> <span class="bp">NSDate</span> <span class="o">*</span><span class="n">retrievedAt</span><span class="p">;</span>
+
+<span class="k">@end</span>
+</code></pre></div><div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="k">@implementation</span> <span class="nc">GHIssue</span>
+
+<span class="p">+</span> <span class="p">(</span><span class="bp">NSDateFormatter</span> <span class="o">*</span><span class="p">)</span><span class="nf">dateFormatter</span> <span class="p">{</span>
+    <span class="bp">NSDateFormatter</span> <span class="o">*</span><span class="n">dateFormatter</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">NSDateFormatter</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="p">];</span>
+    <span class="n">dateFormatter</span><span class="p">.</span><span class="n">locale</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">NSLocale</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithLocaleIdentifier</span><span class="p">:</span><span class="s">@&quot;en_US_POSIX&quot;</span><span class="p">];</span>
+    <span class="n">dateFormatter</span><span class="p">.</span><span class="n">dateFormat</span> <span class="o">=</span> <span class="s">@&quot;yyyy-MM-dd&#39;T&#39;HH:mm:ss&#39;Z&#39;&quot;</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">dateFormatter</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="p">+</span> <span class="p">(</span><span class="bp">NSDictionary</span> <span class="o">*</span><span class="p">)</span><span class="nf">JSONKeyPathsByPropertyKey</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="l">@{</span>
+        <span class="s">@&quot;URL&quot;</span><span class="o">:</span> <span class="s">@&quot;url&quot;</span><span class="p">,</span>
+        <span class="s">@&quot;HTMLURL&quot;</span><span class="o">:</span> <span class="s">@&quot;html_url&quot;</span><span class="p">,</span>
+        <span class="s">@&quot;number&quot;</span><span class="o">:</span> <span class="s">@&quot;number&quot;</span><span class="p">,</span>
+        <span class="s">@&quot;state&quot;</span><span class="o">:</span> <span class="s">@&quot;state&quot;</span><span class="p">,</span>
+        <span class="s">@&quot;reporterLogin&quot;</span><span class="o">:</span> <span class="s">@&quot;user.login&quot;</span><span class="p">,</span>
+        <span class="s">@&quot;assignee&quot;</span><span class="o">:</span> <span class="s">@&quot;assignee&quot;</span><span class="p">,</span>
+        <span class="s">@&quot;updatedAt&quot;</span><span class="o">:</span> <span class="s">@&quot;updated_at&quot;</span>
+    <span class="l">}</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="p">+</span> <span class="p">(</span><span class="bp">NSValueTransformer</span> <span class="o">*</span><span class="p">)</span><span class="nf">URLJSONTransformer</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">[</span><span class="bp">NSValueTransformer</span> <span class="nl">valueTransformerForName</span><span class="p">:</span><span class="n">MTLURLValueTransformerName</span><span class="p">];</span>
+<span class="p">}</span>
+
+<span class="p">+</span> <span class="p">(</span><span class="bp">NSValueTransformer</span> <span class="o">*</span><span class="p">)</span><span class="nf">HTMLURLJSONTransformer</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">[</span><span class="bp">NSValueTransformer</span> <span class="nl">valueTransformerForName</span><span class="p">:</span><span class="n">MTLURLValueTransformerName</span><span class="p">];</span>
+<span class="p">}</span>
+
+<span class="p">+</span> <span class="p">(</span><span class="bp">NSValueTransformer</span> <span class="o">*</span><span class="p">)</span><span class="nf">stateJSONTransformer</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">[</span><span class="bp">NSValueTransformer</span> <span class="nl">mtl_valueMappingTransformerWithDictionary</span><span class="p">:</span><span class="l">@{</span>
+        <span class="s">@&quot;open&quot;</span><span class="o">:</span> <span class="l">@(</span><span class="n">GHIssueStateOpen</span><span class="l">)</span><span class="p">,</span>
+        <span class="s">@&quot;closed&quot;</span><span class="o">:</span> <span class="l">@(</span><span class="n">GHIssueStateClosed</span><span class="l">)</span>
+    <span class="l">}</span><span class="p">];</span>
+<span class="p">}</span>
+
+<span class="p">+</span> <span class="p">(</span><span class="bp">NSValueTransformer</span> <span class="o">*</span><span class="p">)</span><span class="nf">assigneeJSONTransformer</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">MTLJSONAdapter</span> <span class="nl">dictionaryTransformerWithModelClass</span><span class="p">:</span><span class="n">GHUser</span><span class="p">.</span><span class="k">class</span><span class="p">];</span>
+<span class="p">}</span>
+
+<span class="p">+</span> <span class="p">(</span><span class="bp">NSValueTransformer</span> <span class="o">*</span><span class="p">)</span><span class="nf">updatedAtJSONTransformer</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">MTLValueTransformer</span> <span class="nl">transformerUsingForwardBlock</span><span class="p">:</span><span class="o">^</span><span class="kt">id</span><span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="n">dateString</span><span class="p">,</span> <span class="kt">BOOL</span> <span class="o">*</span><span class="n">success</span><span class="p">,</span> <span class="bp">NSError</span> <span class="o">*</span><span class="k">__autoreleasing</span> <span class="o">*</span><span class="n">error</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">dateFormatter</span> <span class="nl">dateFromString</span><span class="p">:</span><span class="n">dateString</span><span class="p">];</span>
+    <span class="p">}</span> <span class="nl">reverseBlock</span><span class="p">:</span><span class="o">^</span><span class="kt">id</span><span class="p">(</span><span class="bp">NSDate</span> <span class="o">*</span><span class="n">date</span><span class="p">,</span> <span class="kt">BOOL</span> <span class="o">*</span><span class="n">success</span><span class="p">,</span> <span class="bp">NSError</span> <span class="o">*</span><span class="k">__autoreleasing</span> <span class="o">*</span><span class="n">error</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">dateFormatter</span> <span class="nl">stringFromDate</span><span class="p">:</span><span class="n">date</span><span class="p">];</span>
+    <span class="p">}];</span>
+<span class="p">}</span>
+
+<span class="p">-</span> <span class="p">(</span><span class="kt">instancetype</span><span class="p">)</span><span class="nf">initWithDictionary:</span><span class="p">(</span><span class="bp">NSDictionary</span> <span class="o">*</span><span class="p">)</span><span class="nv">dictionaryValue</span> <span class="nf">error:</span><span class="p">(</span><span class="bp">NSError</span> <span class="o">**</span><span class="p">)</span><span class="nv">error</span> <span class="p">{</span>
+    <span class="nb">self</span> <span class="o">=</span> <span class="p">[</span><span class="nb">super</span> <span class="nl">initWithDictionary</span><span class="p">:</span><span class="n">dictionaryValue</span> <span class="nl">error</span><span class="p">:</span><span class="n">error</span><span class="p">];</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">self</span> <span class="o">==</span> <span class="nb">nil</span><span class="p">)</span> <span class="k">return</span> <span class="nb">nil</span><span class="p">;</span>
+
+    <span class="c1">// Store a value that needs to be determined locally upon initialization.</span>
+    <span class="n">_retrievedAt</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSDate</span> <span class="n">date</span><span class="p">];</span>
+
+    <span class="k">return</span> <span class="nb">self</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">@end</span>
+</code></pre></div>
+<p>在这里，我们必须要声明每个属性，然后.m文件里面也要根据你的需要写一大堆代码。一眼看下去眼花缭乱的，貌似比<code>全自动映射</code>差太多了。但是就是它可以很轻松的解决<code>全自动映射</code>方式的不足。他是如何解决的？关键就在这一段代码</p>
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="p">+</span> <span class="p">(</span><span class="bp">NSDictionary</span> <span class="o">*</span><span class="p">)</span><span class="nf">JSONKeyPathsByPropertyKey</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="l">@{</span>
+        <span class="s">@&quot;URL&quot;</span><span class="o">:</span> <span class="s">@&quot;url&quot;</span><span class="p">,</span>
+        <span class="s">@&quot;HTMLURL&quot;</span><span class="o">:</span> <span class="s">@&quot;html_url&quot;</span><span class="p">,</span>
+        <span class="s">@&quot;number&quot;</span><span class="o">:</span> <span class="s">@&quot;number&quot;</span><span class="p">,</span>
+        <span class="s">@&quot;state&quot;</span><span class="o">:</span> <span class="s">@&quot;state&quot;</span><span class="p">,</span>
+        <span class="s">@&quot;reporterLogin&quot;</span><span class="o">:</span> <span class="s">@&quot;user.login&quot;</span><span class="p">,</span>
+        <span class="s">@&quot;assignee&quot;</span><span class="o">:</span> <span class="s">@&quot;assignee&quot;</span><span class="p">,</span>
+        <span class="s">@&quot;updatedAt&quot;</span><span class="o">:</span> <span class="s">@&quot;updated_at&quot;</span>
+    <span class="l">}</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>它提供了一个映射转换。再加上数据库和远端数据字段映射，那么模型类的容错能力就大大增加了，简而言之就是兼容性非常好了。</p>
+
+<h6>有确定对比</h6>
+
+<p>这里我们来分析下这三种类型的优缺点，</p>
+
+<ul>
+<li><p>代码冗余量   </p>
+
+<ul>
+<li><code>全自动映射</code>必定是最优的，因为配合工具基本上不需要写什么代码。而<code>全手动实现</code>代码冗余量毫无疑问是最多了，因为所有代码完全由你自己写出来了。<code>全手动实现</code>则是中规中矩了。</li>
+</ul></li>
+<li><p>兼容性</p>
+
+<ul>
+<li><code>全自动映射</code>必定是最差的，因为配合工具，完全你没办法改里面的代码。而<code>全手动实现</code>和模板映射基本上拥有同样的兼容性。</li>
+</ul></li>
+<li><p>综合评比</p>
+
+<ul>
+<li>三者之间好像各有千秋，什么样的项目配合什么样的方式，我只是分析它，这个选择留给你自己</li>
+</ul></li>
+</ul>
+
+<p>但是这里我们主要来考虑，我想要一个兼容性好的但是代码冗余小的方式，怎么办？我的回答是<code>模板映射</code>,这个问题我也深思熟虑过，那么我们就得解决代码冗余的问题了。怎么样的方式去解决它？下面的第二篇我将会具体说怎么解决，在这里先感谢ruby...</p>
+
+    
+      <!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key= data-title=Home data-url=/></div>
+<!-- 多说评论框 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"kaich"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+    
+  </div>
+  
+  <div class="post">
+    <h1 class="post-title">
+      <a href="/2015/05/31/working-tools/">
+        写简化工作的工具
+      </a>
+    </h1>
+
+    <span class="post-date">31 May 2015</span>
+
+    <h4>为工作写工具</h4>
+
+<p>在工作中，我们在写程序的工程中，遇到代码重复性很高的时候，我们可以选择重构简化代码。在其他的方面，如果总要做一些固定流程的工作，而且经常要一步步的重复操作，作为优秀的程序员，绝对是相当受不了的（因为传说优秀的程序员都很懒）。这个时候我们就可以为简化自己的工作写一些实用的校工作连简化自己的工作，以后就既轻松而且happy了。下面来看看我自己写的一些小工具。</p>
+
+<h5>fetchapp ： 查询苹果软件相关信息</h5>
+
+<p>由于工作需要，我们要知道苹果手机和平板上有哪些app以及它的相关信息，比如：bundle id ,版本信息。其他同事想着一个程序一个程序的下载，软后看它的相关信息（软件包解压之后可以看到）。但是我又觉得它太慢反。想到为什么不写个程序来简化它呢（因为一个个装既费时也费力）。于是我网上查了一些。查询相关方法。于是就着手写了。只想写个小工具，于是就用ruby来写（脚本方便，包管理安装都很方便）。</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">安装方式是  gem install :
+
+使用格式如下 fetchapp -t  [iphone ipad mac]  -a 
+
+没有写文档，因为没有写太多的功能，这里是一个例子
+
+fetchapp -t iphone&lt;br&gt;
+start request .....
+request OK !
+------iTunes U------com.apple.itunesu---------
+------查找我的 iPhone------com.apple.mobileme.fmip1---------
+------iBooks------com.apple.iBooks---------
+------Podcasts------com.apple.podcasts---------
+------查找我的朋友------com.apple.mobileme.fmf1---------
+------Pages------com.apple.Pages---------
+------iMovie------com.apple.iMovie---------
+------Numbers------com.apple.Numbers---------
+------Keynote------com.apple.Keynote---------
+------GarageBand------com.apple.mobilegarageband---------
+------Apple Store------com.apple.store.Jolly---------
+------Remote------com.apple.Remote---------
+------AirPort 实用工具------com.apple.airport.mobileairportutility---------
+------iTunes Connect------com.apple.itunesconnect.mobile---------
+------WWDC------developer.apple.wwdc-Release---------
+------TestFlight------com.apple.TestFlight---------
+这是打印比较简单的信息，加-a之后，会打印比较全面一些的信息。基本用法就是这样。如果有时间，以后会加入更多一些的功能。 
+</code></pre></div>
+<p>以上是第一版，功能只有以上简单的查询苹果app的方式，后来于是又加了一些功能。也写了相关的用法的简单的文档。修改版本如下,可以根据app的名称和id来查询相关信息，功法如下：</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">fetchapp  -h
+fetchapp -[options] value
+find apple app info!
+options: 
+name   : app name 
+type   : app type [mac iphone ipad]
+id     : app item id 
+count  : show the count of items,default is 200
+apple  : show apple&#39;s app
+all    : show detail info
+h      : help
+
+note: if you can&#39;t use both of name and id at same time.
+</code></pre></div>
+<p>如果需要，安装方式可以直接在终端下输入：<code>sudo gem install fetchapp</code>.</p>
+
+<h5>certstepper ：简化苹果证书申请流程</h5>
+
+<p>比较有意思的是，最近写certstepper的过程。由于工作的特殊需要要经常申请苹果证书。久而久之，就是那么几部操作，无非就是创建文件夹，粘贴复制，点击网页下一步，然后把证书和配置文件命名成合适的名称，然后移动到创建的目录。这个能够简化的流程有限，于是我想简化复制粘贴和移动配置文件的工作，当然我是用ruby来写的。在导出证书方面可能就有些麻烦了。就没有简化证书从钥匙串导出的过程。这个有时间我可以研究一下。下面来看看申请证书的具体流程：<br>
+申请的账号信息如下:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">12313214214@163.com  //账号
+123456789            //密码
+com.example.test     //bundle id
+</code></pre></div>
+<p>正常步骤如下：   </p>
+
+<ol>
+<li>复制密码账号，登录开发账号</li>
+<li>把申请证书的文件放到指定文件夹下</li>
+<li>利用申请的文件创建证书导出，并放到指定文件夹下</li>
+<li>新建相应的app id</li>
+<li>利用bundle id信息创建配置文件</li>
+<li>移动配置文件到指定目录下</li>
+<li>如果有多个信息，重复1操作</li>
+</ol>
+
+<p>写了certstepper之后，把申请的账号信息经过简化之后如下：</p>
+
+<ol>
+<li>把账号信息写到文件下，例如~/Desktop/CertProduct/certs</li>
+<li>运行certstepper ~/Desktop/CertProduct/certs</li>
+<li>然后点击enter会把账号名复制到剪切板，再点击enter就会吧密码复制到剪切板。这样就可以登录了。不用每次都打开文件，选择复制粘贴到网页</li>
+<li>创建证书，这一步没有简化</li>
+<li>创建app id。终端点击enter，名字到剪切板 ， 再点击bundle id 到剪切板</li>
+<li>创建配置文件，同理，每次enter之后都可以直接在网页相应的位置粘贴了</li>
+<li>最后一步enter直接会将下载的配置文件移动到指定文件夹下</li>
+</ol>
+
+<p>其实步骤并没有少，只是简化了文件移动和复制粘贴的过程。但是在这个过程中。我们可以看到，我们需要在终端和网页之间来回切换。这是很麻烦的事情了。于是我想，是不是有什么方法简化这样的一个过程呢。最初想到的是 <code>safari extension</code>。可是safari extension不能直接调用本地的脚本程序。于是放弃了（其实还是有可行的方案，只是没有尝试，这里卖卖关子，等花点时间尝试出来再说）。于是又想，其实qq那样的菜单栏上面的快捷方式挺好的，于是就写了一个类似的程序。这样就解决了程序之间来回切换的工程了。
+总结一下：</p>
+
+<p>程序直接来还切换的解决方式：</p>
+
+<ol>
+<li>利用safari extension ，但是它不能直接调用本地的脚本和程序</li>
+<li>利用qq那样状态栏上面的快捷方式，就像wifi，电池状态的那种，无时无刻都显示在那。</li>
+</ol>
+
+<p>我完成了第二种方式。
+这里是certstepper 的安装方式： <code>sudo gem install certstepper</code>,那个状态菜单的程序，还没有传到网上，过两天就附上。</p>
+
+<h5>总结</h5>
+
+<p>总之在工作中，我们可以想到用各种各样的方式去简化我们的工作，当然你不可能只会一样东西了。不能说你坐ios就只会object c。很多东邪我们都要用平常的业余时间去学习。例如我现在觉得我其他知识层面比较匮乏，于是我买了很多计算机系统、网络方面的书籍。总之，学无止境。用我们学到的知识运用到生活和工作中。这样不容易忘记而有所成。满足感促进我们再去学习。 </p>
+
+    
+      <!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key= data-title=Home data-url=/></div>
+<!-- 多说评论框 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"kaich"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+    
+  </div>
+  
+  <div class="post">
+    <h1 class="post-title">
+      <a href="/2015/03/31/Swift-Study/">
+        学Swift
+      </a>
+    </h1>
+
+    <span class="post-date">31 Mar 2015</span>
+
+    <h4>新特性：</h4>
+
+<h5>基础类型：</h5>
+
+<ul>
+<li>常用基本类型 Int  Double  Float Turple 类型都是结构体了。它们可以和类一样拥有自己的方法，但是在进行表达式的类型转换的时候，swift中必须显示转换</li>
+<li><p>对于option主要是用于状态的判断,它不能直接用于运算，如果没有初始值会自动为nil。表现方式如下：  </p>
+
+<p>“​var​ ​serverResponseCode​: ​Int​? = ​404”</p></li>
+<li><p>主要作用：nil 可以适用于任何option类型和类，我们可以在if或者其他的状态变化中用nil来做判断 ，如下：</p></li>
+<li><div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="err">​</span><span class="k">let</span><span class="err">​</span> <span class="err">​</span><span class="n">convertedNumber</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="n">possibleNumber</span><span class="err">​</span><span class="p">.</span><span class="err">​</span><span class="n">toInt</span><span class="err">​</span><span class="p">()</span>
+ <span class="k">if</span><span class="err">​</span> <span class="err">​</span><span class="n">convertedNumber</span><span class="err">​</span> <span class="o">!=</span> <span class="err">​</span><span class="nb">nil</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span>          <span class="err">​</span><span class="n">println</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="s">&quot;convertedNumber contains some integer value.&quot;</span><span class="err">​</span><span class="p">)</span>
+<span class="err">​</span> <span class="p">}</span>
+<span class="err">​</span>      <span class="c1">// prints &quot;convertedNumber contains some integer value.”</span>
+<span class="err">可以通过</span><span class="n">optional</span><span class="err">变量后面加！来告诉编译器已经确认它必定不为</span><span class="nb">nil</span><span class="err">，如果为</span><span class="nb">nil</span><span class="err">编译器会报错</span>
+</code></pre></div></li>
+<li><p>基础操作：</p>
+
+<ul>
+<li>%可以用于浮点型  “a = (b × some multiplier) + remainder”</li>
+<li>a..&lt;b  和  a…b 符号的加入 半开运算符比较实用于0 开始的数组，如下：</li>
+</ul>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="err">“​</span><span class="k">let</span><span class="err">​</span> <span class="err">​</span><span class="n">names</span><span class="err">​</span> <span class="o">=</span> <span class="p">[</span><span class="err">​</span><span class="s">&quot;Anna&quot;</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="s">&quot;Alex&quot;</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="s">&quot;Brian&quot;</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="s">&quot;Jack&quot;</span><span class="err">​</span><span class="p">]</span>
+<span class="err">​</span><span class="k">let</span><span class="err">​</span> <span class="err">​</span><span class="n">count</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="n">names</span><span class="err">​</span><span class="p">.</span><span class="err">​</span><span class="n">count</span>
+<span class="err">​</span><span class="k">for</span><span class="err">​</span> <span class="err">​</span><span class="n">i</span><span class="err">​</span> <span class="err">​</span><span class="k">in</span><span class="err">​</span> <span class="err">​</span><span class="mi">0</span><span class="err">​</span><span class="p">..</span><span class="o">&lt;</span><span class="err">​</span><span class="n">count</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span> <span class="err">​</span><span class="n">println</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="s">&quot;Person ​\(​i​ + ​1​)​ is called ​\(​names​[​i​])​&quot;</span><span class="err">​</span><span class="p">)</span>
+<span class="err">​</span><span class="p">}</span>
+<span class="err">​</span><span class="c1">// Person 1 is called Anna</span>
+<span class="err">​</span><span class="c1">// Person 2 is called Alex</span>
+<span class="err">​</span><span class="c1">// Person 3 is called Brian</span>
+<span class="err">​</span><span class="c1">// Person 4 is called Jack”</span>
+</code></pre></div></li>
+<li><p>=== 和 !== 运算符来判断是否是同一个变量
+= 没有任何返回值</p>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="err">​</span><span class="k">if</span><span class="err">​</span> <span class="err">​</span><span class="n">x</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="n">y</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span> <span class="err">​</span><span class="c1">// this is not valid, because x = y does not return a value</span>
+<span class="err">​</span><span class="p">}</span>
+</code></pre></div></li>
+<li><p>?? 空合并运算符， a ?? b 等价于 “a​ != ​nil​ ? ​a​! : ​b“ 。需要注意的是 b 必须和 a 中的值是一个类型的<br>
+在逻辑运算符中可以 直接 if a &amp;&amp; b || c || d 这样连续，但是在oc中是不可以的。</p></li>
+</ul>
+
+<h5>字符串：</h5>
+
+<ul>
+<li>字符串在swift中是值类型，而并非指针类型。它在传值的时候会被拷贝。(因为String 式结构体，结构体和类的区别就是传值的时候结构体是拷贝的<br></li>
+<li>+ 运算符加入</li>
+<li>\() 在字符串中填写表达式进行字符串的插入</li>
+<li>countElements可以计算出字符串的个数，能够正确兼容Unicode，在object-C length 方法在计算中文的时候一个字length是2</li>
+</ul>
+
+<h5>集合：</h5>
+
+<h6>Array:</h6>
+
+<ul>
+<li><p>在swift中集合是又类型的。不论是显示(Array<SomeType>)还是隐式生成。例如一定你第一个插入了Int 你不能再插入非Int的类型了。而它也带了一个好处：不是只能插入类。他们都是结构体</p>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="nl">Array</span> <span class="p">:</span>
+<span class="n">Array</span><span class="err">显示定义以及初始化：</span>
+ <span class="err">“</span><span class="k">var</span><span class="err">​</span> <span class="err">​</span><span class="n">shoppingList</span><span class="err">​</span><span class="o">:</span> <span class="p">[</span><span class="err">​</span><span class="n">String</span><span class="err">​</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="err">​</span><span class="s">&quot;Eggs&quot;</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="s">&quot;Milk&quot;</span><span class="err">​</span><span class="p">]</span><span class="err">”</span>
+ <span class="err">“​</span><span class="k">var</span><span class="err">​</span> <span class="err">​</span><span class="n">threeDoubles</span><span class="err">​</span> <span class="o">=</span> <span class="p">[</span><span class="err">​</span><span class="n">Double</span><span class="err">​</span><span class="p">](</span><span class="err">​</span><span class="n">count</span><span class="err">​</span><span class="o">:</span> <span class="err">​</span><span class="mi">3</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">repeatedValue</span><span class="err">​</span><span class="o">:</span> <span class="err">​</span><span class="mf">0.0</span><span class="err">​</span><span class="p">)</span><span class="err">”</span>
+ <span class="k">var</span><span class="err">​</span> <span class="err">​</span><span class="n">someInts</span><span class="err">​</span> <span class="o">=</span> <span class="p">[</span><span class="err">​</span><span class="n">Int</span><span class="err">​</span><span class="p">]()</span>
+</code></pre></div></li>
+<li><p>用+=向Array中添加元素</p></li>
+<li><p>Array之间可以 + 相加</p></li>
+<li><p>用a[1] = b 改变Array元素的值 或者用 a[1…3] = [b,c,d] 形式来进行连续赋值</p></li>
+<li><p>Array遍历：</p>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">for</span><span class="err">​</span> <span class="p">(</span><span class="err">​</span><span class="n">index</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">value</span><span class="err">​</span><span class="p">)</span> <span class="err">​</span><span class="k">in</span><span class="err">​</span> <span class="err">​</span><span class="n">enumerate</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="n">shoppingList</span><span class="err">​</span><span class="p">)</span> <span class="p">{</span>
+<span class="err">​</span> <span class="err">​</span><span class="n">println</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="s">&quot;Item ​\(​index​ + ​1​)​: ​\(​value​)​&quot;</span><span class="err">​</span><span class="p">)</span>
+<span class="err">​</span><span class="p">}</span>
+</code></pre></div></li>
+</ul>
+
+<h6>Dictinary:</h6>
+
+<ul>
+<li>hash 值是由 == 来决定的</li>
+<li>swift中使用“[key 1: value 1, key 2: value 2, key 3: value 3]”来定义dictionary。 而不是Object-c 中的{key1 : value1 , key2 : value2 } ，</li>
+<li>a[b] = c形式进行赋值</li>
+<li><p>遍历：</p>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">for</span><span class="err">​</span> <span class="p">(</span><span class="err">​</span><span class="n">airportCode</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">airportName</span><span class="err">​</span><span class="p">)</span> <span class="err">​</span><span class="k">in</span><span class="err">​</span> <span class="err">​</span><span class="n">airports</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span> <span class="err">​</span><span class="n">println</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="s">&quot;​\(​airportCode​)​: ​\(​airportName​)​&quot;</span><span class="err">​</span><span class="p">)</span>
+<span class="err">​</span><span class="p">}</span>
+</code></pre></div></li>
+</ul>
+
+<h5>控制：</h5>
+
+<ul>
+<li>Turple作为判断条件的时候比较特殊，具体看教程</li>
+<li>switch 中 可以默认不用写break，他会自己break。 break的作用作于你想提前break。 fallthrough关键字能够让switch判断继续向下走而不是break了,他不会判断下个case的条件，而是直接执行下个case里面的代码</li>
+<li><p>可以用如下进行复杂的流程控制，循环和switch嵌套的话，continue、  ， 用来控制作用于那个（这个功能非常有用)</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">“label name: while condition {
+    statements
+}”
+</code></pre></div></li>
+</ul>
+
+<h5>函数：</h5>
+
+<ul>
+<li>func 可以返回Turple 类型，也就是返回多值</li>
+<li><p>func 可以带外部名称 ，函数内部必须用 localParameterName  调用函数的时候用 externalParameterName 。 当两者名字一样的时候直接在名字前面加#</p>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">func</span><span class="err">​</span> <span class="err">​</span><span class="n">someFunction</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="n">externalParameterName</span><span class="err">​</span> <span class="err">​</span><span class="n">localParameterName</span><span class="err">​</span><span class="o">:</span> <span class="err">​</span><span class="n">Int</span><span class="err">​</span><span class="p">)</span> <span class="p">{</span>
+<span class="err">​</span> <span class="err">​</span><span class="c1">// function body goes here, and can use localParameterName</span>
+<span class="err">​</span> <span class="err">​</span><span class="c1">// to refer to the argument value for that parameter</span>
+<span class="err">​</span><span class="p">}</span>
+</code></pre></div></li>
+<li><p>func 可以带可变参数 … ,可变参数放到最后一个</p></li>
+<li><p>参数默认是常量，你不可以改变它。 你也可以设置变量，但是他是本身copy的一个新变量。 如果你想在函数里面更改传入参数的值，那么在定义参数的时候加关键字inout . 注意：在swift中参数的传递已经不区分深复制和浅复制了，只有没有加inout，都不会修改原来传递的值。而object-c中如果传入的是对象或者集合都是可以改变原值的。swift让用户显示调用，更加安全。</p></li>
+<li><p>函数可以作为变量使用，可以作为参数传入函数，可以作为返回值</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">“var​ ​mathFunction​: (​Int​, ​Int​) -&gt; ​Int​ = ​addTwoInts”
+</code></pre></div></li>
+<li><p>函数可以嵌套定义。就是函数里面定义函数，这是一种特殊形式的闭包</p></li>
+</ul>
+
+<h5>闭包：</h5>
+
+<ul>
+<li><p>闭包无名称函数</p>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="p">{</span> <span class="p">(</span><span class="n">parameters</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="k">return</span> <span class="n">type</span> <span class="k">in</span>
+    <span class="n">statements</span>
+<span class="p">}</span>
+</code></pre></div></li>
+<li><p>它可以根据上下文来判断参数和返回值的类型，可以简化</p></li>
+</ul>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="err">​</span><span class="n">reversed</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="n">sorted</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="n">names</span><span class="err">​</span><span class="p">,</span> <span class="p">{</span> <span class="p">(</span><span class="err">​</span><span class="n">s1</span><span class="err">​</span><span class="o">:</span> <span class="err">​</span><span class="n">String</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">s2</span><span class="err">​</span><span class="o">:</span> <span class="err">​</span><span class="n">String</span><span class="err">​</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="err">​</span><span class="n">Bool</span><span class="err">​</span> <span class="err">​</span><span class="k">in</span><span class="err">​</span> <span class="err">​</span><span class="k">return</span><span class="err">​</span> <span class="err">​</span><span class="n">s1</span><span class="err">​</span> <span class="o">&gt;</span> <span class="err">​</span><span class="n">s2</span><span class="err">​</span> <span class="p">}</span> <span class="p">)</span>
+</code></pre></div>
+<p>简化成
+<code>swift
+    ​reversed​ = ​sorted​(​names​, { ​s1​, ​s2​ ​in​ ​return​ ​s1​ &gt; ​s2​ } )
+</code>
+单个表达式的闭包可以自动return，我们可以省略return 
+<code>swift
+​reversed​ = ​sorted​(​names​, { ​s1​, ​s2​ ​in​ ​s1​ &gt; ​s2​ } )
+</code>
+闭包提供了一个速记的参数形式$1 $2 $3 ,分别代表第一个，第二个，第三个参数
+<code>swift
+reversed​ = ​sorted​(​names​, { ​$0​ &gt; ​$1​ } )
+</code>
+由于String 实现了 &gt; 方法，所以简化为
+<code>swift
+​reversed​ = ​sorted​(​names​, &gt;)
+</code>
+尾部闭包，主要作用于让函数体比较大的闭包方便显示
+<code>swift
+reversed​ = ​sorted​(​names​) { ​$0​ &gt; ​$1​ }
+</code>
+* 闭包捕获上下午的值是引用，而不是copy</p>
+
+<h5>枚举：</h5>
+
+<p>swift中枚举不会自定赋0、1、2 ...的默认值，首字母必须大写</p>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="err">​</span><span class="k">enum</span><span class="err">​</span> <span class="err">​</span><span class="n">CompassPoint</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span> <span class="err">​</span><span class="k">case</span><span class="err">​</span> <span class="err">​</span><span class="n">North</span>
+<span class="err">​</span> <span class="err">​</span><span class="k">case</span><span class="err">​</span> <span class="err">​</span><span class="n">South</span>
+<span class="err">​</span> <span class="err">​</span><span class="k">case</span><span class="err">​</span> <span class="err">​</span><span class="n">East</span>
+<span class="err">​</span> <span class="err">​</span><span class="k">case</span><span class="err">​</span> <span class="err">​</span><span class="n">West</span>
+<span class="err">​</span><span class="p">}</span>
+</code></pre></div>
+<p>或者</p>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">enum</span><span class="err">​</span> <span class="err">​</span><span class="n">Planet</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span> <span class="err">​</span><span class="k">case</span><span class="err">​</span> <span class="err">​</span><span class="n">Mercury</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">Venus</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">Earth</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">Mars</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">Jupiter</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">Saturn</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">Uranus</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">Neptune</span>
+<span class="err">​</span><span class="p">}</span>
+</code></pre></div>
+<ul>
+<li>每一个enum的成员都可以是其他的任何类型，它可以让使用者存储附加信息。例如：</li>
+</ul>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">enum</span><span class="err">​</span> <span class="err">​</span><span class="n">Barcode</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span> <span class="err">​</span><span class="k">case</span><span class="err">​</span> <span class="err">​</span><span class="n">UPCA</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="n">Int</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">Int</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">Int</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">Int</span><span class="err">​</span><span class="p">)</span>
+<span class="err">​</span> <span class="err">​</span><span class="k">case</span><span class="err">​</span> <span class="err">​</span><span class="n">QRCode</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="n">String</span><span class="err">​</span><span class="p">)</span>
+<span class="err">​</span><span class="p">}</span>
+</code></pre></div>
+<ul>
+<li><p>可以通过raw value 来获取enum的值，它返回的是optional值，raw value 为了让使用者和c 模式一样，直接通过 1，2，3，4...来比较. 例如</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">“​let​ ​possiblePlanet​ = ​Planet​(​rawValue​: ​7​)”
+</code></pre></div></li>
+</ul>
+
+<h5>类和结构体：</h5>
+
+<ul>
+<li>类比结构体多的功能：
+
+<ul>
+<li>继承</li>
+<li>类型转换 列入  a = (String *) </li>
+<li>Deinitializers释放实例占有的资源</li>
+<li>引用数可以大于1 。 （结构体是copy，所以只有1）</li>
+<li>对于Stuct 可以，直接用成员初始化，而class不行</li>
+</ul></li>
+</ul>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="err">“</span><span class="k">struct</span><span class="err">​</span> <span class="err">​</span><span class="n">Resolution</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span> <span class="err">​</span><span class="k">var</span><span class="err">​</span> <span class="err">​</span><span class="n">width</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="mi">0</span>
+<span class="err">​</span> <span class="err">​</span><span class="k">var</span><span class="err">​</span> <span class="err">​</span><span class="n">height</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="mi">0</span>
+<span class="err">​</span><span class="p">}</span>
+<span class="k">let</span><span class="err">​</span> <span class="err">​</span><span class="n">vga</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="n">Resolution</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="n">width</span><span class="err">​</span><span class="o">:</span> <span class="err">​</span><span class="mi">640</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">height</span><span class="err">​</span><span class="o">:</span> <span class="err">​</span><span class="mi">480</span><span class="err">​</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li>特性：
+成员变量中可以用 lazy 关键字进行修饰，它表示延迟加载，只有当第一次调用该成员变量的时候，该成员变量才会被创建。</li>
+</ul>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="n">lazy</span><span class="err">​</span> <span class="err">​</span><span class="k">var</span><span class="err">​</span> <span class="err">​</span><span class="n">importer</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="n">DataImporter</span><span class="err">​</span><span class="p">()</span>
+</code></pre></div>
+<p>计算属性格式 ，set函数没有参数，默认有个值 newValue可以提供使用：</p>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">struct</span><span class="err">​</span> <span class="err">​</span><span class="n">AlternativeRect</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span> <span class="err">​</span><span class="k">var</span><span class="err">​</span> <span class="err">​</span><span class="n">origin</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="n">Point</span><span class="err">​</span><span class="p">()</span>
+<span class="err">​</span> <span class="err">​</span><span class="k">var</span><span class="err">​</span> <span class="err">​</span><span class="n">size</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="n">Size</span><span class="err">​</span><span class="p">()</span>
+<span class="err">​</span> <span class="err">​</span><span class="k">var</span><span class="err">​</span> <span class="err">​</span><span class="n">center</span><span class="err">​</span><span class="o">:</span> <span class="err">​</span><span class="n">Point</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span>     <span class="err">​</span><span class="kr">get</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span>         <span class="err">​</span><span class="k">let</span><span class="err">​</span> <span class="err">​</span><span class="n">centerX</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="n">origin</span><span class="err">​</span><span class="p">.</span><span class="err">​</span><span class="n">x</span><span class="err">​</span> <span class="o">+</span> <span class="p">(</span><span class="err">​</span><span class="n">size</span><span class="err">​</span><span class="p">.</span><span class="err">​</span><span class="n">width</span><span class="err">​</span> <span class="o">/</span> <span class="err">​</span><span class="mi">2</span><span class="err">​</span><span class="p">)</span>
+<span class="err">​</span>         <span class="err">​</span><span class="k">let</span><span class="err">​</span> <span class="err">​</span><span class="n">centerY</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="n">origin</span><span class="err">​</span><span class="p">.</span><span class="err">​</span><span class="n">y</span><span class="err">​</span> <span class="o">+</span> <span class="p">(</span><span class="err">​</span><span class="n">size</span><span class="err">​</span><span class="p">.</span><span class="err">​</span><span class="n">height</span><span class="err">​</span> <span class="o">/</span> <span class="err">​</span><span class="mi">2</span><span class="err">​</span><span class="p">)</span>
+<span class="err">​</span>         <span class="err">​</span><span class="k">return</span><span class="err">​</span> <span class="err">​</span><span class="n">Point</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="n">x</span><span class="err">​</span><span class="o">:</span> <span class="err">​</span><span class="n">centerX</span><span class="err">​</span><span class="p">,</span> <span class="err">​</span><span class="n">y</span><span class="err">​</span><span class="o">:</span> <span class="err">​</span><span class="n">centerY</span><span class="err">​</span><span class="p">)</span>
+<span class="err">​</span>     <span class="p">}</span>
+<span class="err">​</span>     <span class="err">​</span><span class="kr">set</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span>         <span class="err">​</span><span class="n">origin</span><span class="err">​</span><span class="p">.</span><span class="err">​</span><span class="n">x</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="n">newValue</span><span class="err">​</span><span class="p">.</span><span class="err">​</span><span class="n">x</span><span class="err">​</span> <span class="o">-</span> <span class="p">(</span><span class="err">​</span><span class="n">size</span><span class="err">​</span><span class="p">.</span><span class="err">​</span><span class="n">width</span><span class="err">​</span> <span class="o">/</span> <span class="err">​</span><span class="mi">2</span><span class="err">​</span><span class="p">)</span>
+<span class="err">​</span>         <span class="err">​</span><span class="n">origin</span><span class="err">​</span><span class="p">.</span><span class="err">​</span><span class="n">y</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="n">newValue</span><span class="err">​</span><span class="p">.</span><span class="err">​</span><span class="n">y</span><span class="err">​</span> <span class="o">-</span> <span class="p">(</span><span class="err">​</span><span class="n">size</span><span class="err">​</span><span class="p">.</span><span class="err">​</span><span class="n">height</span><span class="err">​</span> <span class="o">/</span> <span class="err">​</span><span class="mi">2</span><span class="err">​</span><span class="p">)</span>
+<span class="err">​</span>     <span class="p">}</span>
+<span class="err">​</span> <span class="p">}</span>
+<span class="err">​</span><span class="p">}</span>
+</code></pre></div>
+<ul>
+<li>只读属性直接在计算属性的基础上，写函数体然后return就可以了</li>
+<li>属性监听，willSet , didSet 。 在willSet 中可以用newValue来获取新值，在didSet中可以用oldValue获取旧值，如果在didSet中给该属性赋值，他会替换刚刚付的值</li>
+</ul>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">class</span><span class="err">​</span> <span class="err">​</span><span class="n">StepCounter</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span> <span class="err">​</span><span class="k">var</span><span class="err">​</span> <span class="err">​</span><span class="n">totalSteps</span><span class="err">​</span><span class="o">:</span> <span class="err">​</span><span class="n">Int</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="mi">0</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span>     <span class="err">​</span><span class="kr">willSet</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="n">newTotalSteps</span><span class="err">​</span><span class="p">)</span> <span class="p">{</span>
+<span class="err">​</span>         <span class="err">​</span><span class="n">println</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="s">&quot;About to set totalSteps to ​\(​newTotalSteps​)​&quot;</span><span class="err">​</span><span class="p">)</span>
+<span class="err">​</span>     <span class="p">}</span>
+<span class="err">​</span>     <span class="err">​</span><span class="kr">didSet</span><span class="err">​</span> <span class="p">{</span>
+<span class="err">​</span>         <span class="err">​</span><span class="k">if</span><span class="err">​</span> <span class="err">​</span><span class="n">totalSteps</span><span class="err">​</span> <span class="o">&gt;</span> <span class="err">​</span><span class="n">oldValue</span><span class="err">​</span>  <span class="p">{</span>
+<span class="err">​</span>             <span class="err">​</span><span class="n">println</span><span class="err">​</span><span class="p">(</span><span class="err">​</span><span class="s">&quot;Added ​\(​totalSteps​ - ​oldValue​)​ steps&quot;</span><span class="err">​</span><span class="p">)</span>
+<span class="err">​</span>         <span class="p">}</span>
+<span class="err">​</span>     <span class="p">}</span>
+<span class="err">​</span> <span class="p">}</span>
+<span class="err">​</span><span class="p">}</span>
+</code></pre></div>
+<ul>
+<li><p>类型成员变量，也就是object-c中的类静态变量。用static 关键字修饰，如果在类里面用class 修饰</p>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">static</span><span class="err">​</span> <span class="err">​</span><span class="k">var</span><span class="err">​</span> <span class="err">​</span><span class="n">storedTypeProperty</span><span class="err">​</span> <span class="o">=</span> <span class="err">​</span><span class="s">&quot;Some value.</span>
+</code></pre></div></li>
+<li><p>类，结构体和枚举类型都可以定义方法</p></li>
+</ul>
+
+    
+      <!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key= data-title=Home data-url=/></div>
+<!-- 多说评论框 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"kaich"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- 多说公共JS代码 end -->
+    
+  </div>
+  
+  <div class="post">
+    <h1 class="post-title">
       <a href="/2015/03/01/Build-Jekyll-Blog/">
         搭建Jekyll博客
       </a>
@@ -131,7 +1128,7 @@
 
 <ul>
 <li><p>安装Jekyll，创建blog。比如创建一个my-awesome-site的博客</p>
-<div class="highlight"><pre><code class="text language-text" data-lang="text">gem install jekyll
+<div class="highlight"><pre><code class="language-text" data-lang="text">gem install jekyll
 jekyll new my-awesome-site
 cd my-awesome-site
 jekyll serve
@@ -148,7 +1145,7 @@ jekyll serve
 
 <p>Jekyll默认是用的<code>Pygments</code>来生成代码块高亮的，<code>Pygments</code>支持100多种语言，使用起来相对于比较方便。但是它的使用会直接破坏markdown的风格。
 它使用方式如下：</p>
-<div class="highlight"><pre><code class="text language-text" data-lang="text">```c
+<div class="highlight"><pre><code class="language-text" data-lang="text">```c
 /* hello world demo */
 #include &lt;stdio.h&gt;
 int main(int argc, char **argv)
@@ -160,23 +1157,21 @@ int main(int argc, char **argv)
 </code></pre></div>
 <p>会产生如下效果</p>
 
-<div class="highlight"><pre><code class="c">    <span class="cm">/* hello world demo */</span>
-    <span class="err">#</span><span class="n">include</span> <span class="o">&lt;</span><span class="n">stdio</span><span class="p">.</span><span class="n">h</span><span class="o">&gt;</span>
-    <span class="kt">int</span> <span class="n">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span>
+<div class="highlight"><pre><code class="language-c" data-lang="c"><span class="cm">/* hello world demo */</span>
+    <span class="cp">#include &lt;stdio.h&gt;</span>
+    <span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span>
     <span class="p">{</span>
         <span class="n">printf</span><span class="p">(</span><span class="s">&quot;Hello, World!</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
         <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-    <span class="p">}</span>
-    
-</code></pre></div>
+    <span class="p">}</span></code></pre></div>
 
 <p>如果你这样使用在markdown编辑器中预览的时候，你会看到很丑陋的页面风格。但是在Jekyll站定中打开的时候，页面就是正常的(所以说它破坏了markdown的封装)。</p>
 
 <p>至于更换代码显示的风格可以调用如下命令生成CSS。</p>
-<div class="highlight"><pre><code class="text language-text" data-lang="text">pygmentize -S monokai -f html &gt; your/path/pygments.css  
+<div class="highlight"><pre><code class="language-text" data-lang="text">pygmentize -S monokai -f html &gt; your/path/pygments.css  
 </code></pre></div>
 <p>然后包含到你blog的default.html中</p>
-<div class="highlight"><pre><code class="text language-text" data-lang="text">&lt;link rel=&quot;stylesheet&quot; href=&quot;/your/path/pygments.css&quot;&gt;
+<div class="highlight"><pre><code class="language-text" data-lang="text">&lt;link rel=&quot;stylesheet&quot; href=&quot;/your/path/pygments.css&quot;&gt;
 </code></pre></div>
 <p><em>注意: 如果之前有包含Pygments的CSS记得去掉他，或者在包含的时候直接替换掉它</em>  </p>
 
@@ -185,10 +1180,10 @@ int main(int argc, char **argv)
 <h6>google code prettify</h6>
 
 <p><a href="https://code.google.com/p/google-code-prettify/">google code prettify</a>使用方法很简单，他可以自动识别语言，不需要想pygments一样需要表明。可以镶嵌代码块的时候保持了markdown的语言格式。但是它本身提供的语言支持相比pygments要少得多，但是你可以自己写扩展。如果你有兴趣你可以尝试写。关于使用可以直接包含run_prettify.js代码</p>
-<div class="highlight"><pre><code class="text language-text" data-lang="text">&lt;script src=&quot;https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js&quot;&gt;&lt;/script&gt;
+<div class="highlight"><pre><code class="language-text" data-lang="text">&lt;script src=&quot;https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js&quot;&gt;&lt;/script&gt;
 </code></pre></div>
 <p>或者我们直接通过下载代码到博客的目录中进行本地包含。在定义博客内容的html的body的最后包含如下脚本</p>
-<div class="highlight"><pre><code class="js language-js" data-lang="js"><span class="o">&lt;</span><span class="nx">link</span> <span class="nx">rel</span><span class="o">=</span><span class="s2">&quot;stylesheet&quot;</span> <span class="nx">href</span><span class="o">=</span><span class="s2">&quot;/public/js/prettify/prettify.css&quot;</span><span class="o">&gt;</span>
+<div class="highlight"><pre><code class="language-js" data-lang="js"><span class="o">&lt;</span><span class="nx">link</span> <span class="nx">rel</span><span class="o">=</span><span class="s2">&quot;stylesheet&quot;</span> <span class="nx">href</span><span class="o">=</span><span class="s2">&quot;/public/js/prettify/prettify.css&quot;</span><span class="o">&gt;</span>
 <span class="o">&lt;</span><span class="nx">script</span> <span class="nx">src</span><span class="o">=</span><span class="s2">&quot;/public/js/prettify/prettify.js&quot;</span><span class="o">&gt;&lt;</span><span class="err">/script&gt;</span>
 <span class="o">&lt;</span><span class="nx">script</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;text/javascript&quot;</span><span class="o">&gt;</span>
   <span class="nx">$</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
@@ -236,106 +1231,11 @@ var duoshuoQuery = {short_name:"kaich"};
     
   </div>
   
-  <div class="post">
-    <h1 class="post-title">
-      <a href="/2014/07/29/introducing-reactivecocoa/">
-        复杂的ReactiveCocoa
-      </a>
-    </h1>
-
-    <span class="post-date">29 Jul 2014</span>
-
-    <p>关于ReactiveCocoa的 文章有很多，但是能够从根本上详细介绍它的太少了，基本上没有。甚至看完了都不知道什么叫side effect。关于字面上方法的介绍这里不做讨论，我们具体来分析它的原理和代码的结构分析，看它监听是如何实现的。帮助我们从根本上理解它。
-关于它的组成有这几个RACSignal, RACSubscriber,RACDisposable这三个主要对象，这是三个基础类，其他基本上都是这三个的子类(当然RACSignal是继承RACStream),其实RACSignal是信号流，是RAC的主要类，RACSubscriber是接受者，RACSignal
-会存储它所有的RACSubscriber,一旦有新的变化RACSignal会通知所有的RACSubscriber，最后RACDisposable是用来清理和释放内存的。
-  我们来简单分析一下代码：          </p>
-<div class="highlight"><pre><code class="objc language-objc" data-lang="objc"><span class="k">+</span> <span class="p">(</span><span class="n">RACSignal</span> <span class="o">*</span><span class="p">)</span><span class="nf">createSignal:</span><span class="p">(</span><span class="n">RACDisposable</span> <span class="o">*</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">RACSubscriber</span><span class="o">&gt;</span> <span class="n">subscriber</span><span class="p">))</span><span class="nv">didSubscribe</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="p">[</span><span class="n">RACDynamicSignal</span> <span class="n">createSignal</span><span class="o">:</span><span class="n">didSubscribe</span><span class="p">];</span>
-<span class="p">}</span>
-</code></pre></div>
-<p>我们可以看到，其实RACSignal创建的是它的子类RACDynamicSignal。我们再跟进去它的另一个方法</p>
-<div class="highlight"><pre><code class="objc language-objc" data-lang="objc"><span class="k">-</span> <span class="p">(</span><span class="n">RACDisposable</span> <span class="o">*</span><span class="p">)</span><span class="nf">subscribe:</span><span class="p">(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">RACSubscriber</span><span class="o">&gt;</span><span class="p">)</span><span class="nv">subscriber</span> <span class="p">{</span>
-    <span class="n">NSCAssert</span><span class="p">(</span><span class="nb">NO</span><span class="p">,</span> <span class="s">@&quot;This method must be overridden by subclasses&quot;</span><span class="p">);</span>
-    <span class="k">return</span> <span class="nb">nil</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="k">-</span> <span class="p">(</span><span class="n">RACDisposable</span> <span class="o">*</span><span class="p">)</span><span class="nf">subscribeNext:</span><span class="p">(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">x</span><span class="p">))</span><span class="nv">nextBlock</span> <span class="p">{</span>
-    <span class="n">NSCParameterAssert</span><span class="p">(</span><span class="n">nextBlock</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">);</span>
-
-    <span class="n">RACSubscriber</span> <span class="o">*</span><span class="n">o</span> <span class="o">=</span> <span class="p">[</span><span class="n">RACSubscriber</span> <span class="n">subscriberWithNext</span><span class="o">:</span><span class="n">nextBlock</span> <span class="n">error</span><span class="o">:</span><span class="nb">NULL</span> <span class="n">completed</span><span class="o">:</span><span class="nb">NULL</span><span class="p">];</span>
-    <span class="k">return</span> <span class="p">[</span><span class="n">self</span> <span class="n">subscribe</span><span class="o">:</span><span class="n">o</span><span class="p">];</span>
-<span class="p">}</span>   
-</code></pre></div>
-<p>我们看到了如下的方法，首先通过nextblock 创建一个RACSubscriber对象，然后进行了subscribe操作，那么这个操作是什么作用了？应该是对RACSubscriber的相关处理，在RACSignal 中subcribe方法是空，因为创建实际上穿件的是RACDynamicSignal，所以我们跟进到它的sbucribe方法中。</p>
-<div class="highlight"><pre><code class="objc language-objc" data-lang="objc"><span class="k">-</span> <span class="p">(</span><span class="n">RACDisposable</span> <span class="o">*</span><span class="p">)</span><span class="nf">subscribe:</span><span class="p">(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">RACSubscriber</span><span class="o">&gt;</span><span class="p">)</span><span class="nv">subscriber</span> <span class="p">{</span>
-    <span class="n">NSCParameterAssert</span><span class="p">(</span><span class="n">subscriber</span> <span class="o">!=</span> <span class="nb">nil</span><span class="p">);</span>
-
-    <span class="n">RACCompoundDisposable</span> <span class="o">*</span><span class="n">disposable</span> <span class="o">=</span> <span class="p">[</span><span class="n">RACCompoundDisposable</span> <span class="n">compoundDisposable</span><span class="p">];</span>
-    <span class="n">subscriber</span> <span class="o">=</span> <span class="p">[[</span><span class="n">RACPassthroughSubscriber</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">initWithSubscriber</span><span class="o">:</span><span class="n">subscriber</span> <span class="n">signal</span><span class="o">:</span><span class="n">self</span> <span class="n">disposable</span><span class="o">:</span><span class="n">disposable</span><span class="p">];</span>
-
-    <span class="k">if</span> <span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">didSubscribe</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">RACDisposable</span> <span class="o">*</span><span class="n">schedulingDisposable</span> <span class="o">=</span> <span class="p">[</span><span class="n">RACScheduler</span><span class="p">.</span><span class="n">subscriptionScheduler</span> <span class="n">schedule</span><span class="o">:^</span><span class="p">{</span>
-            <span class="n">RACDisposable</span> <span class="o">*</span><span class="n">innerDisposable</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="n">didSubscribe</span><span class="p">(</span><span class="n">subscriber</span><span class="p">);</span>
-            <span class="p">[</span><span class="n">disposable</span> <span class="n">addDisposable</span><span class="o">:</span><span class="n">innerDisposable</span><span class="p">];</span>
-        <span class="p">}];</span>
-
-        <span class="p">[</span><span class="n">disposable</span> <span class="n">addDisposable</span><span class="o">:</span><span class="n">schedulingDisposable</span><span class="p">];</span>
-    <span class="p">}</span>
-
-    <span class="k">return</span> <span class="n">disposable</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div>
-<p>我们主要看标注的地方，上面的<em>subscribers储存所有加入的RACSubscriber,然后下面的方法，我们仔细观察它调用了self.didSubscribe(subscriber),来回调我们刚刚创建RACSignal的那个didsubcribe的block。接下来我们进行关键的步骤，分析它是如何监听的：
-#define RACObserve(TARGET, KEYPATH) \    [(id)(TARGET) rac</em>valuesForKeyPath:@keypath(TARGET, KEYPATH) observer:self]
-监听的宏定义，在NSObject+RACPropertySubscribing.h中,然后一直跟进去，由于调用太频繁了，具体跟踪就不写了。最后我们可以在NSObject+RACKVOWrapper的里面发现这样一个方法</p>
-<div class="highlight"><pre><code class="objc language-objc" data-lang="objc"><span class="n">NSKeyValueObservingOptions</span> <span class="n">trampolineOptions</span> <span class="o">=</span> <span class="p">(</span><span class="n">options</span> <span class="o">|</span> <span class="n">NSKeyValueObservingOptionPrior</span><span class="p">)</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">NSKeyValueObservingOptionInitial</span><span class="p">;</span>
-<span class="n">RACKVOTrampoline</span> <span class="o">*</span><span class="n">trampoline</span> <span class="o">=</span> <span class="p">[[</span><span class="n">RACKVOTrampoline</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">initWithTarget</span><span class="o">:</span><span class="n">self</span> <span class="n">observer</span><span class="o">:</span><span class="n">strongObserver</span> <span class="n">keyPath</span><span class="o">:</span><span class="n">keyPathHead</span> <span class="n">options</span><span class="o">:</span><span class="n">trampolineOptions</span> <span class="n">block</span><span class="o">:^</span><span class="p">(</span><span class="kt">id</span> <span class="n">trampolineTarget</span><span class="p">,</span> <span class="kt">id</span> <span class="n">trampolineObserver</span><span class="p">,</span> <span class="n">NSDictionary</span> <span class="o">*</span><span class="n">change</span><span class="p">)</span> <span class="p">{</span>
-    <span class="c1">// If this is a prior notification, clean up all the callbacks added to the</span>
-    <span class="c1">// previous value and call the callback block. Everything else is deferred</span>
-    <span class="c1">// until after we get the notification after the change.</span>
-    <span class="k">if</span> <span class="p">([</span><span class="n">change</span><span class="p">[</span><span class="n">NSKeyValueChangeNotificationIsPriorKey</span><span class="p">]</span> <span class="n">boolValue</span><span class="p">])</span> <span class="p">{</span>
-        <span class="p">[</span><span class="n">firstComponentDisposable</span><span class="p">()</span> <span class="n">dispose</span><span class="p">];</span>
-
-        <span class="k">if</span> <span class="p">((</span><span class="n">options</span> <span class="o">&amp;</span> <span class="n">NSKeyValueObservingOptionPrior</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-            <span class="n">block</span><span class="p">([</span><span class="n">trampolineTarget</span> <span class="n">valueForKeyPath</span><span class="o">:</span><span class="n">keyPath</span><span class="p">],</span> <span class="n">change</span><span class="p">,</span> <span class="nb">NO</span><span class="p">,</span> <span class="n">keyPathHasOneComponent</span><span class="p">);</span>
-        <span class="p">}</span>
-
-        <span class="k">return</span><span class="p">;</span>
-    <span class="p">}</span>   
-
-    <span class="n">NSString</span> <span class="o">*</span> <span class="n">name</span> <span class="o">=</span> <span class="p">[[</span><span class="n">NSString</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="p">];</span>
-</code></pre></div>
-<p>然后我们再跟进RACKVOTrampoline中,会发现一个特别的东西里面的原理了，原来也是通过调用KVO来实现的。在RACKVOTrampoline的
-observeValueForKeyPath:ofObject:change:context:
-会调用传进来的block ，block 里面调用RACSubscriber的sendNext方法。里面会调用RACSubscriber next block。整个流程就是这样了。分析了具体原理，以后的具体方法我们应该都可以结合注释看懂了。</p>
-
-<p>关于这篇是仓促之下写下的，以后会吧图片替换成code，并且修缮这blog。</p>
-
-    
-      <!-- 多说评论框 start -->
-	<div class="ds-thread" data-thread-key= data-title=Home data-url=/></div>
-<!-- 多说评论框 end -->
-<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
-<script type="text/javascript">
-var duoshuoQuery = {short_name:"kaich"};
-	(function() {
-		var ds = document.createElement('script');
-		ds.type = 'text/javascript';ds.async = true;
-		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
-		ds.charset = 'UTF-8';
-		(document.getElementsByTagName('head')[0] 
-		 || document.getElementsByTagName('body')[0]).appendChild(ds);
-	})();
-	</script>
-<!-- 多说公共JS代码 end -->
-    
-  </div>
-  
 </div>
 
 <div class="pagination">
   
-    <span class="pagination-item older">Older</span>
+    <a class="pagination-item older" href="page2">Older</a>
   
   
     <span class="pagination-item newer">Newer</span>

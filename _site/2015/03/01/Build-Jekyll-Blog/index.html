@@ -45,13 +45,19 @@
   </div>
 
   <nav class="sidebar-nav">
-    <a class="sidebar-nav-item" href="">Home</a>
+    <a class="sidebar-nav-item" href="/">Home</a>
 
     
 
     
     
       
+        
+      
+    
+      
+        
+          <a class="sidebar-nav-item" href="/BlogIndex/">Blog Index</a>
         
       
     
@@ -64,8 +70,6 @@
       
     
       
-        
-          <a class="sidebar-nav-item" href="/BlogIndex/">Blog Index</a>
         
       
     
@@ -123,7 +127,7 @@
 
 <ul>
 <li><p>安装Jekyll，创建blog。比如创建一个my-awesome-site的博客</p>
-<div class="highlight"><pre><code class="text language-text" data-lang="text">gem install jekyll
+<div class="highlight"><pre><code class="language-text" data-lang="text">gem install jekyll
 jekyll new my-awesome-site
 cd my-awesome-site
 jekyll serve
@@ -140,7 +144,7 @@ jekyll serve
 
 <p>Jekyll默认是用的<code>Pygments</code>来生成代码块高亮的，<code>Pygments</code>支持100多种语言，使用起来相对于比较方便。但是它的使用会直接破坏markdown的风格。
 它使用方式如下：</p>
-<div class="highlight"><pre><code class="text language-text" data-lang="text">```c
+<div class="highlight"><pre><code class="language-text" data-lang="text">```c
 /* hello world demo */
 #include &lt;stdio.h&gt;
 int main(int argc, char **argv)
@@ -152,23 +156,21 @@ int main(int argc, char **argv)
 </code></pre></div>
 <p>会产生如下效果</p>
 
-<div class="highlight"><pre><code class="c">    <span class="cm">/* hello world demo */</span>
-    <span class="err">#</span><span class="n">include</span> <span class="o">&lt;</span><span class="n">stdio</span><span class="p">.</span><span class="n">h</span><span class="o">&gt;</span>
-    <span class="kt">int</span> <span class="n">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span>
+<div class="highlight"><pre><code class="language-c" data-lang="c"><span class="cm">/* hello world demo */</span>
+    <span class="cp">#include &lt;stdio.h&gt;</span>
+    <span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span>
     <span class="p">{</span>
         <span class="n">printf</span><span class="p">(</span><span class="s">&quot;Hello, World!</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
         <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-    <span class="p">}</span>
-    
-</code></pre></div>
+    <span class="p">}</span></code></pre></div>
 
 <p>如果你这样使用在markdown编辑器中预览的时候，你会看到很丑陋的页面风格。但是在Jekyll站定中打开的时候，页面就是正常的(所以说它破坏了markdown的封装)。</p>
 
 <p>至于更换代码显示的风格可以调用如下命令生成CSS。</p>
-<div class="highlight"><pre><code class="text language-text" data-lang="text">pygmentize -S monokai -f html &gt; your/path/pygments.css  
+<div class="highlight"><pre><code class="language-text" data-lang="text">pygmentize -S monokai -f html &gt; your/path/pygments.css  
 </code></pre></div>
 <p>然后包含到你blog的default.html中</p>
-<div class="highlight"><pre><code class="text language-text" data-lang="text">&lt;link rel=&quot;stylesheet&quot; href=&quot;/your/path/pygments.css&quot;&gt;
+<div class="highlight"><pre><code class="language-text" data-lang="text">&lt;link rel=&quot;stylesheet&quot; href=&quot;/your/path/pygments.css&quot;&gt;
 </code></pre></div>
 <p><em>注意: 如果之前有包含Pygments的CSS记得去掉他，或者在包含的时候直接替换掉它</em>  </p>
 
@@ -177,10 +179,10 @@ int main(int argc, char **argv)
 <h6>google code prettify</h6>
 
 <p><a href="https://code.google.com/p/google-code-prettify/">google code prettify</a>使用方法很简单，他可以自动识别语言，不需要想pygments一样需要表明。可以镶嵌代码块的时候保持了markdown的语言格式。但是它本身提供的语言支持相比pygments要少得多，但是你可以自己写扩展。如果你有兴趣你可以尝试写。关于使用可以直接包含run_prettify.js代码</p>
-<div class="highlight"><pre><code class="text language-text" data-lang="text">&lt;script src=&quot;https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js&quot;&gt;&lt;/script&gt;
+<div class="highlight"><pre><code class="language-text" data-lang="text">&lt;script src=&quot;https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js&quot;&gt;&lt;/script&gt;
 </code></pre></div>
 <p>或者我们直接通过下载代码到博客的目录中进行本地包含。在定义博客内容的html的body的最后包含如下脚本</p>
-<div class="highlight"><pre><code class="js language-js" data-lang="js"><span class="o">&lt;</span><span class="nx">link</span> <span class="nx">rel</span><span class="o">=</span><span class="s2">&quot;stylesheet&quot;</span> <span class="nx">href</span><span class="o">=</span><span class="s2">&quot;/public/js/prettify/prettify.css&quot;</span><span class="o">&gt;</span>
+<div class="highlight"><pre><code class="language-js" data-lang="js"><span class="o">&lt;</span><span class="nx">link</span> <span class="nx">rel</span><span class="o">=</span><span class="s2">&quot;stylesheet&quot;</span> <span class="nx">href</span><span class="o">=</span><span class="s2">&quot;/public/js/prettify/prettify.css&quot;</span><span class="o">&gt;</span>
 <span class="o">&lt;</span><span class="nx">script</span> <span class="nx">src</span><span class="o">=</span><span class="s2">&quot;/public/js/prettify/prettify.js&quot;</span><span class="o">&gt;&lt;</span><span class="err">/script&gt;</span>
 <span class="o">&lt;</span><span class="nx">script</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;text/javascript&quot;</span><span class="o">&gt;</span>
   <span class="nx">$</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
@@ -225,6 +227,19 @@ var duoshuoQuery = {short_name:"kaich"};
 	})();
 	</script>
 <!-- 多说公共JS代码 end -->
+
+<!-- 网站分析  -->
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-61579283-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+<!-- 网站分析  end-->
   
 </div>
 
@@ -234,9 +249,27 @@ var duoshuoQuery = {short_name:"kaich"};
     
       <li>
         <h3>
-          <a href="/2014/07/29/introducing-reactivecocoa/">
-            复杂的ReactiveCocoa
-            <small>29 Jul 2014</small>
+          <a href="/2015/08/26/Rake-Tutorial/">
+            Rake 教程
+            <small>26 Aug 2015</small>
+          </a>
+        </h3>
+      </li>
+    
+      <li>
+        <h3>
+          <a href="/2015/08/11/ptgen/">
+            像rails创建IOS模型类
+            <small>11 Aug 2015</small>
+          </a>
+        </h3>
+      </li>
+    
+      <li>
+        <h3>
+          <a href="/2015/05/31/working-tools/">
+            写简化工作的工具
+            <small>31 May 2015</small>
           </a>
         </h3>
       </li>

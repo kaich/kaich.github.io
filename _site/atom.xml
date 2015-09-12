@@ -4,13 +4,918 @@
  <title>kai cheng</title>
  <link href="http://lanyon.getpoole.com/atom.xml" rel="self"/>
  <link href="http://lanyon.getpoole.com/"/>
- <updated>2015-03-04T00:07:16+08:00</updated>
+ <updated>2015-09-12T13:59:50+08:00</updated>
  <id>http://lanyon.getpoole.com</id>
  <author>
    <name>Mark Otto</name>
    <email></email>
  </author>
 
+ 
+ <entry>
+   <title>Rake 教程</title>
+   <link href="http://lanyon.getpoole.com/2015/08/26/Rake-Tutorial/"/>
+   <updated>2015-08-26T00:00:00+08:00</updated>
+   <id>http://lanyon.getpoole.com/2015/08/26/Rake-Tutorial</id>
+   <content type="html">&lt;p&gt;英文原文：&lt;a href=&quot;http://jasonseifer.com/2010/04/06/rake-tutorial&quot;&gt;Rake Tutorial&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;在学习rails过程中遇到了rake，查看了文档和很多网站也不太清楚rake到底是什么。直到阅读了以上文章才入门rake。于是决定翻译过来，供大家参考。&lt;/p&gt;
+
+&lt;p&gt;如果你用Rails开发，你一定或多或少的遇到过rake。这篇博客主要目的是让你知道rake是从何而来和如何在Rails项目中使用它。&lt;/p&gt;
+
+&lt;h3&gt;简史&lt;/h3&gt;
+
+&lt;p&gt;Rake是&lt;a href=&quot;http://onestepback.org/&quot;&gt;Jim Weirich&lt;/a&gt;的项目。它是一个构建工具。如果你对它的历史有浓厚的兴趣你可以通过&lt;a href=&quot;http://rake.rubyforge.org/files/doc/rational_rdoc.html&quot;&gt;&amp;quot;rational.rdoc&amp;quot;&lt;/a&gt;进行更进一步的了解。Rake本来是想让Makefile里面使用ruby语言，尽管Jim并不深信这个想法，但是它是一个很好的想法。自动构建系统需要什么？通常&lt;a href=&quot;https://zh.wikipedia.org/zh-cn/%E7%B5%84%E5%BB%BA%E8%87%AA%E5%8B%95%E5%8C%96&quot;&gt;Wikipedia&lt;/a&gt;会这样回答：&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;历来开发者们利用构建自动化通过命令行从构建脚本里面去调用编译和链接过程。它是很容易通过命令行传入源文件从而生成最终的产物。但是当尝试按照特定的顺序去编译链接很多源文件的时候，使用命令行就不是那么好的方案了。当一个构建过程变得复杂的时候，开发者开始将围绕呼叫前置和后置动作的编译器，如检查出的版本控制，部署对象复制到测试位置。术语“构建自动化”现在包括管理前置和后置的编译和链接活动，以及编译和链接活动.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3&gt;依赖&lt;/h3&gt;
+
+&lt;p&gt;构建和依赖相关。一个文件或者一系列的文件依赖另外的以一系列文件编译和链接或者在处理下一批之前必须的一些东西。Rake里面同样存在任务之间的依赖。把下面的代码保存到任意目录名为&amp;#39;Rakefile&amp;#39;的文件中&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;directory &amp;quot;tmp&amp;quot;
+
+file &amp;quot;hello.tmp&amp;quot; =&amp;gt; &amp;quot;tmp&amp;quot; do
+  sh &amp;quot;echo &amp;#39;Hello&amp;#39; &amp;gt;&amp;gt; &amp;#39;tmp/hello.tmp&amp;#39;&amp;quot;
+end
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;一个名叫“hello.tmp”的文件依赖于&amp;quot;tmp&amp;quot;文件夹。当我们运行它，首先会产生一个“tmp“文件夹，然后才会执行&amp;quot;hello.tmp&amp;quot;任务。当你运行的时候会有类似如下的输出：&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;[jason@brick:~/src]$ rake hello.tmp
+(in /Users/jason/src)
+echo &amp;#39;Hello&amp;#39; &amp;gt; &amp;#39;tmp/hello.tmp&amp;#39;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;如果你查看&amp;quot;hello.tmp&amp;quot;里面的内容，你会发现&amp;quot;Hello&amp;quot;。如果你再次运行，会发生什么呢？Rake会再次生成这个文件。因为它不会查找mp/hello.tmp，而是按照定义中的区查找&amp;quot;hello.tmp&amp;quot;。让我们重新定义下：&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt; directory &amp;quot;tmp&amp;quot;
+
+ file &amp;quot;tmp/hello.tmp&amp;quot; =&amp;gt; &amp;quot;tmp&amp;quot; do
+   sh &amp;quot;echo &amp;#39;Hello&amp;#39; &amp;gt; &amp;#39;tmp/hello.tmp&amp;#39;&amp;quot;
+ end
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;现在如果你运行它两次会看到如下的输出：&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;[jason@brick:~/src]$ rake &amp;quot;tmp/hello.tmp&amp;quot;
+ (in /Users/jason/src)
+ mkdir -p tmp
+ echo &amp;#39;Hello&amp;#39; &amp;gt; &amp;#39;tmp/hello.tmp&amp;#39;
+ [jason@brick:~/src]$ rake &amp;quot;tmp/hello.tmp&amp;quot;
+ (in /Users/jason/src)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Rake现在就会知道这个文件任务已经执行过了，不会重复执行任务了。&lt;/p&gt;
+
+&lt;h3&gt;运行其他的任务&lt;/h3&gt;
+
+&lt;p&gt;Rake任务可以采取的形式有先决条件和可以依赖于另一个任务。下面是早晨要做的事情：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;关闹钟(Turn off alarm clock)&lt;/li&gt;
+&lt;li&gt;整理自己(Groom myself)&lt;/li&gt;
+&lt;li&gt;煮咖啡(Make coffee)&lt;/li&gt;
+&lt;li&gt;遛狗(Walk dog)&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;我们按照顺序做以上的几件事情，用Rake来描述如下：&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;task :turn_off_alarm do
+   puts &amp;quot;Turned off alarm. Would have liked 5 more minutes, though.&amp;quot;
+ end
+
+ task :groom_myself do
+   puts &amp;quot;Brushed teeth.&amp;quot;
+   puts &amp;quot;Showered.&amp;quot;
+   puts &amp;quot;Shaved.&amp;quot;
+ end
+
+ task :make_coffee do
+   cups = ENV[&amp;quot;COFFEE_CUPS&amp;quot;] || 2
+   puts &amp;quot;Made #{cups} cups of coffee. Shakes are gone.&amp;quot;
+ end
+
+ task :walk_dog do
+   puts &amp;quot;Dog walked.&amp;quot;
+ end
+
+ task :ready_for_the_day =&amp;gt; [:turn_off_alarm, :groom_myself, :make_coffee, :walk_dog] do
+   puts &amp;quot;Ready for the day!&amp;quot;
+ end
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;如果我输入&lt;code&gt;rake ready_for_the_day&lt;/code&gt;，会看到如下输出:&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;[jason@brick:~/src]$ rake ready_for_the_day
+ (in /Users/jason/src)
+ Turned off alarm. Would have liked 5 more minutes, though.
+ Brushed teeth.
+ Showered.
+ Shaved.
+ Made 5 cups of coffee. Shakes are gone.
+ Dog walked.
+ Ready for the day!
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;通过运行&lt;code&gt;ready_for_the_day&lt;/code&gt;任务会发现&lt;code&gt;turn_off_alarm&lt;/code&gt;, &lt;code&gt;groom_myself&lt;/code&gt;, &lt;code&gt;make_coffee&lt;/code&gt;, &lt;code&gt;walk_dog tasks&lt;/code&gt;是&lt;code&gt;ready_for_the_day&lt;/code&gt;任务的先决条件，而且它完全是按照我们写的顺序执行的。你会发现我们可以传值给&lt;code&gt;make_coffee&lt;/code&gt;任务。我们可以通过如下形式传值给&lt;code&gt;COFFEE_CUPS&lt;/code&gt;环境变量：&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt; [jason@brick:~/src]$ rake COFFEE_CUPS=5 make_coffee
+ (in /Users/jason/src)
+ Made 5 cups of coffee. Shakes are gone.
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3&gt;命名空间&lt;/h3&gt;
+
+&lt;p&gt;Rake支持命名空间，能够让你把类似的任务都放到同一个命名空间里面，然后你通过命名空间去调用里面的任务。在Rails中，你会注意到 &lt;code&gt;db:migrate&lt;/code&gt; 任务，在这个例子中&lt;code&gt;db&lt;/code&gt;就是命名空间，&lt;code&gt;migrate&lt;/code&gt;就是任务。用我们之间的例子，把任务都放到命名空间就是如下：&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt; namespace :morning do
+   task :turn_of_alarm
+   ....
+ end
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;现在如果你运行&lt;code&gt;rake COFFEE_CUPS=3 morning:ready_for_the_day&lt;/code&gt;，你将得到和之前相同的输出，只不过现在是3杯咖啡了（3 cups of coffee ）。&lt;/p&gt;
+
+&lt;h3&gt;默认任务&lt;/h3&gt;
+
+&lt;p&gt;Rake有默认任务这一概念。它意味着如果你输入rake命令时候没有待任何参数，那么就会运行默认任务。如果我们设置默认任务是：关掉闹钟(urning off the alarm).&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt; task :default =&amp;gt; &amp;#39;morning:turn_off_alarm&amp;#39;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;在命令行中输入&lt;code&gt;rake&lt;/code&gt;,会得到如下输出：&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;[jason@brick:~/src]$ rake
+(in /Users/jason/src)
+Turned off alarm. Would have liked 5 more minutes, though.
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3&gt;任务描述&lt;/h3&gt;
+
+&lt;p&gt;你可以使用&lt;code&gt;desc&lt;/code&gt;关键字来描述你的任务，就和其他语言里面的文档注释效果一样。这些描述会在你运行&lt;code&gt;rake -T&lt;/code&gt;获得任务列表的时候显示出来。我们来在上面的例子中加入任务描述：&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt; ...
+  desc &amp;quot;Make coffee&amp;quot;
+  task :make_coffee do
+    cups = ENV[&amp;quot;COFFEE_CUPS&amp;quot;] || 2
+    puts &amp;quot;Made #{cups} cups of coffee. Shakes are gone.&amp;quot;
+  end
+  ...
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;现在在命令行中输入&lt;code&gt;rake -T&lt;/code&gt;，你回获得如下输出：&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;  [jason@brick:~/src]$ rake -T
+  (in /Users/jason/src)
+  rake afternoon:make_coffee      # Make afternoon coffee
+  rake morning:groom_myself       # Take care of normal hygeine tasks.
+  rake morning:make_coffee        # Make coffee
+  rake morning:ready_for_the_day  # Get ready for the day
+  rake morning:turn_off_alarm     # Turn off alarm.
+  rake morning:walk_dog           # Walk the dog
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;在显示任务列表的时候我们也可以在后面加上额外的参数去匹配任务。例如&lt;code&gt;rake -T af&lt;/code&gt;将会仅仅显示afternoon task。&lt;/p&gt;
+
+&lt;h3&gt;任务重定义&lt;/h3&gt;
+
+&lt;p&gt;如果你想加点什么到已经存在的任务中该怎么办？例如要在打扮自己的时候打扮一下你的头发(tyling your hair)。你可以定义另外的一个groom_myself任务，加入这一行为:&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;  namespace :morning do
+    ....
+    task :groom_myself do
+      puts &amp;quot;Brushed teeth.&amp;quot;
+      puts &amp;quot;Showered.&amp;quot;
+      puts &amp;quot;Shaved.&amp;quot;
+    end
+    ....
+  end
+  ...
+  namespace :morning do
+    task :groom_myself do
+      puts &amp;quot;Styled hair.&amp;quot;
+    end
+  end
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;运行任务，你将会看到：&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;(in /Users/jason/src)
+  Brushed teeth.
+  Showered.
+  Shaved.
+  Styled hair.
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3&gt;调用任务&lt;/h3&gt;
+
+&lt;p&gt;有的时候在一个任务里面你想调用另外的一个任务。还是用上面的例子。例如你想下午做咖啡。你只需要在早上做咖啡的基础上输出一行额外的信息：&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;  namespace :afternoon do
+    task :make_coffee do
+      Rake::Task[&amp;#39;morning:make_coffee&amp;#39;].invoke
+      puts &amp;quot;Ready for the rest of the day!&amp;quot;
+    end
+  end
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;它的输出结果如下：&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt; [jason@brick:~/src]$ rake afternoon:make_coffee COFFEE_CUPS=1
+ (in /Users/jason/src)
+ Made 1 cups of coffee. Shakes are gone.
+ Ready for the rest of the day!
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3&gt;重构&lt;/h3&gt;
+
+&lt;p&gt;就如上面的例子有很多代码是在别处定义好了，我们要让方法中直接调用别处定义好的代码，而不是每次都重新定义类似的代码。例如给每个快到期的用户发邮件&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;  namespace :accounts do
+    desc &amp;quot;Email expiring accounts to let them know&amp;quot;
+    task :email_expiring =&amp;gt; :environment do
+      date = ENV[&amp;#39;from&amp;#39;] ? Date.parse(ENV[&amp;#39;from&amp;#39;]) : Date.today
+      accounts = Account.find(:all, :conditions =&amp;gt; [&amp;quot;expiration_date = ?&amp;quot;, date]
+      accounts.each do |account|
+        Notifier.deliver_account_expiration(account)
+      end
+    end
+  end
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;以上方法，给用户发邮件算是通用方法，别处可能会用到，于是我们可以把通用的写到一个方法里面：&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;  namespace :accounts do
+    desc &amp;quot;Email expiring accounts to let them know&amp;quot;
+    task :email_expiring =&amp;gt; :environment do
+      date = ENV[&amp;#39;from&amp;#39;] ? Date.parse(ENV[&amp;#39;from&amp;#39;]) : Date.today
+      Account.notify_expiring(date)
+    end
+  end
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;这样写也更容易让你的代码更具测试性。例如我们可以很方便的测试notify_expiring方法了。&lt;/p&gt;
+
+&lt;h3&gt;Rails&lt;/h3&gt;
+
+&lt;p&gt;你可以访问你的模型和依赖环境的任务构成的整个环境。例如你可以运行&lt;code&gt;run rake RAILS_ENV=staging db:migrate&lt;/code&gt;.Rails自动从lib/tasks查找任务。当执行&lt;code&gt;rake -T&lt;/code&gt;的时候，所有.rake扩展名里面的任务都会列出来。&lt;/p&gt;
+
+&lt;h3&gt;调度Rake任务&lt;/h3&gt;
+
+&lt;p&gt;可以用&lt;a href=&quot;https://en.wikipedia.org/wiki/Cron&quot;&gt;cron&lt;/a&gt;调度rake任务。如果想每天晚上12:15给快过期的用户发邮件，可以这样做：&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;  15 * * * * cd /data/my_app/current &amp;amp;&amp;amp; /usr/bin/rake RAILS_ENV=production accounts:email_expiring
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;这个我也没有研究过。&lt;/p&gt;
+
+&lt;h3&gt;派生&lt;/h3&gt;
+
+&lt;p&gt;这里就不翻译了&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://github.com/wycats/thor/&quot;&gt;Thor&lt;/a&gt; is a more class based approach to solving some of the things rake does as far as actual tasks go.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://capify.org/&quot;&gt;Capistrano&lt;/a&gt; is the de facto standard for deploying rails apps. Its syntax is inspired pretty heavily by Rake, but it is definitely not rake.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3&gt;Further Reading&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://blog.jayfields.com/2006/11/ruby-testing-rake-tasks.html&quot;&gt;&amp;quot;Testing Rake Tasks&amp;quot;&lt;/a&gt; by Jay Fields&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.jbarnette.com/2009/08/27/on-rake.html&quot;&gt;&amp;quot;On Rake&amp;quot;&lt;/a&gt; by John Barnette&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.claytonlz.com/index.php/2009/04/how-to-setup-rspec-cucumber-webrat-rcov-and-autotest-on-leopard/&quot;&gt;How To: Setup RSpec, Cucumber, Webrat, RCov and Autotest on Leopard | Clayton Lengel-Zigich&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://railscasts.com/episodes/66-custom-rake-tasks&quot;&gt;Custom Rake Tasks&lt;/a&gt; Railscast&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3&gt;Useful Rake Examples&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://gist.github.com/359401&quot;&gt;Sample Rakefile&lt;/a&gt; from this article.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://gist.github.com/359401&quot;&gt;redis.rake&lt;/a&gt; from Resque.
+If you have any more useful rake examples, please let me know and I’ll add them here.&lt;/li&gt;
+&lt;/ul&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>像rails创建IOS模型类</title>
+   <link href="http://lanyon.getpoole.com/2015/08/11/ptgen/"/>
+   <updated>2015-08-11T00:00:00+08:00</updated>
+   <id>http://lanyon.getpoole.com/2015/08/11/ptgen</id>
+   <content type="html">&lt;p&gt;接触ruby是因为它独特灵活的语法，接触rails是因为它奇幻无比的魔法。&lt;/p&gt;
+
+&lt;p&gt;在一年之前，从事iOS已经是第三年了,当时自己对ios技术还是比较自信。但是看到github上的各位大牛，掌握着各种各样的技术，而自己也仅仅会ios这一门技术，相比之下不禁也是自惭形秽了。“以铜为镜正衣冠，以人为镜明得失”，有了比较就有了动力，于是终于下定决心学一门脚本语言了。经过各种比较，最终决定是灵活的ruby（也是因为github是ruby写的），到后来慢慢接触了rails并且深深的被rails创建模型的便捷方式给吸引了。可能是ios思想根深蒂固，于是心想为什么不能用rails的方式创建ios模型类呢？同样每次创建的模型类都包含了太多的重复代码，如果你有一定的经验，你会发现你都有自己的一套模型组织方式了。既然模型里面是有迹可循，而且代码重复量大，那么rails创建模型类或许可以大大提高写程序的速度，避免一次次写那些重复的代码。&lt;/p&gt;
+
+&lt;p&gt;在rails中创建一个model，可以这样&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;rails g model user name:string age:int sex:string
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;它会创建一个User模型类，包含了name ,age,sex三个属性。那么如何将这样的方式在ios中实现呢。这里有几个问题：&lt;/p&gt;
+
+&lt;p&gt;rails 里面这种命令行生成的模型类是基于ActiveRecord的进行json，数据库，属性之间的转换的，而IOS没有
+rails旨在提供一个强大的框架，而我的目的是工具：生产模型类的工具。&lt;/p&gt;
+
+&lt;p&gt;这两点就决定了和rails的命令必然有着区别。IOS模型类基本上都肩负着如下的职责：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;属性和数据库之间的相互转换&lt;/li&gt;
+&lt;li&gt;属性和远端数据(json)的相互转换&lt;/li&gt;
+&lt;li&gt;以上两者对于模型类都必须是可选的&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;开始决定最初的方案是&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;    ptgen [entity_name] -lsd [property]:[sever_property]:[table_column]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;例如如果要创建一个student模型类，包含name ,age ,sex三个属性，同时要支持服务器端和数据库端转换，那么就会这样写&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;pigeon student -lsd name.string:sname.string:tname  age.int:sage.int:tage sex.string:ssex.string:tsex
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;这样看起来还好，但是我们忽略了很多东西，例如属性的类型，格式化，服务器属性类型，格式化，如果要加上这样一系列的东西，极有可能导致 [property]:[sever&lt;em&gt;property]:[table&lt;/em&gt;column]部分极为冗长，可读性变得相当差。于是就思考把它分开，于是有了接下来的模式：&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;ptgen  [entity_name]  -l [property_list]  -s [sever_property_list] -d [table_column_list]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;【entity_name] 模型类名称&lt;br&gt;&lt;/li&gt;
+&lt;li&gt; -l local  [property_list]模型类属性列表 &lt;/li&gt;
+&lt;li&gt; -s server [sever&lt;em&gt;property&lt;/em&gt;list]服务器属性列表&lt;/li&gt;
+&lt;li&gt; -d database  [table&lt;em&gt;column&lt;/em&gt;list]数据库字段列表&lt;/li&gt;
+&lt;li&gt;以上三个列表字段都必须一一对应&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;例如同样要创建一个student模型类，包含name ,age ,sex三个属性，同时要支持服务器端和数据库端转换，那么就会这样写&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;pigeon student -l name:string age:int sex:string -s sname:string sage:int ssex:string -d tname tage tsex
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;这看起来比上面冗长一些，其实不然。值得注意的是这种方式可读性更强，若还有更多扩展，不会显得冗长而可读性差。于是最终就决定采用这种模式来写命令行。&lt;/p&gt;
+
+&lt;h4&gt;模型类里面的构造&lt;/h4&gt;
+
+&lt;p&gt;在ios开发有一些经验的人，相比都有适合自己写模型类的方式。虽然有可能会有不同，但是模型类的基本责任还是都差不多的。就上面所提到的&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;属性和远端数据(json)的相互转换&lt;/li&gt;
+&lt;li&gt;属性和数据库之间的相互转换&lt;/li&gt;
+&lt;li&gt;以上两者对于模型类都必须是可选的&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h5&gt;属性和远端数据的相互转换&lt;/h5&gt;
+
+&lt;p&gt;关于属性和远端json数据的相互转换，我总结了一下，在IOS通常的项目会有三种方式去写：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;全手动实现&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;全自动映射&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;模板映射&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h6&gt;全手动实现&lt;/h6&gt;
+
+&lt;p&gt;这种方式应该是最常见的，也是新手最容易使用的形式了。这种方式我们先xcode中创建模型类，然后在.h文件中一行代码一行代码的去声明每一个变量，在.m文件中去实现json到属性的转换过程。例如：&lt;/p&gt;
+
+&lt;p&gt;FPTrader.h&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objc&quot; data-lang=&quot;objc&quot;&gt;&lt;span class=&quot;cp&quot;&gt;#import &amp;lt;Foundation/Foundation.h&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;@interface&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;FPTrader&lt;/span&gt; : &lt;span class=&quot;bp&quot;&gt;NSObject&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;traderID&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;//id&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;account&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;//名字&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;address&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;//地址&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;district&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;//区域 district&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bizDistrict&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;contractor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;email&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;floor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;logourl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mall&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mallArea&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;province&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;room&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;telephone&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;webicp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;city&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;+(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;FPTrader&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;parseModelWith:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSDictionary&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;dic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;@end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;FPTrader.m&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objc&quot; data-lang=&quot;objc&quot;&gt;&lt;span class=&quot;cp&quot;&gt;#import &amp;quot;FPTrader.h&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;cp&quot;&gt;#import &amp;quot;FP_Define_Methods.h&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;@implementation&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;FPTrader&lt;/span&gt;
+
+
+&lt;span class=&quot;p&quot;&gt;+(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;FPTrader&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;parseModelWith:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSDictionary&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;dic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;FPTrader&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;trader&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;FPTrader&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;trader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;address&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DIC_VALUE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@&amp;quot;Address&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;trader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;account&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DIC_VALUE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@&amp;quot;AlipayAccount&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;trader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bizDistrict&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DIC_VALUE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@&amp;quot;BizDistrict&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;trader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;city&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DIC_VALUE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@&amp;quot;City&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;trader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;contractor&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DIC_VALUE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@&amp;quot;Contactor&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;trader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;district&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DIC_VALUE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@&amp;quot;District&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;trader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;email&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DIC_VALUE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@&amp;quot;Email&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;trader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;floor&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DIC_VALUE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@&amp;quot;Floor&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;trader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;logourl&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DIC_VALUE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@&amp;quot;LogoUrl&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;trader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mall&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DIC_VALUE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@&amp;quot;Mall&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;trader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mallArea&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DIC_VALUE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@&amp;quot;MallArea&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;trader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DIC_VALUE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@&amp;quot;Name&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;trader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;province&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DIC_VALUE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@&amp;quot;Province&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;trader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;room&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DIC_VALUE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@&amp;quot;Room&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;trader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;traderID&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DIC_VALUE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@&amp;quot;SupplierId&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;trader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;telephone&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DIC_VALUE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@&amp;quot;Telephone&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;trader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;webicp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DIC_VALUE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@&amp;quot;Webicp&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;trader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;@end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;这个例子就是典型的按通常的方式自己手动完全实现。(&lt;i&gt;有的新手写代码会把parseModel里面的代码在每次请求的时候都去手动解析给模型类属性赋值一遍，甚至连请求都不封装，导致大量冗余的代码，这种方式写出来的代码就只能用惨绝人寰来形容了&lt;/i&gt;),这种方式写模型类的方式中规中矩，但是存在了一个问题：&lt;code&gt;如果模型类比较多，会出现大量的给模型类赋值（例如trader.address = DIC_VALUE(dic,@&amp;quot;Address&amp;quot;);）这样的代码，模型类比较少的项目，还能接受。但是模型类一旦多起来那就写起来很烦了&lt;/code&gt;&lt;/p&gt;
+
+&lt;h6&gt;全自动映射&lt;/h6&gt;
+
+&lt;p&gt;在我们写ios开发有一定经验的时候，我们必定会开始或多或少的接触了object-c的runtime功能，在平常的使用的类库中也或多或少的用到了（只是你不知道而已）.我们完全可以利用runtime来实现远端数据到属性的全自动映射。具体实现方式就不在这里多说了。在model上运用这种方式比较耀眼的是&lt;a href=&quot;https://github.com/icanzilb/JSONModel&quot;&gt;JSONModel&lt;/a&gt;，他完全是全自动映射。下面看看他的使用方式：&lt;/p&gt;
+
+&lt;p&gt;假设服务端返回了如下的json数据&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;{&amp;quot;id&amp;quot;:&amp;quot;10&amp;quot;, &amp;quot;country&amp;quot;:&amp;quot;Germany&amp;quot;, &amp;quot;dialCode&amp;quot;: 49, &amp;quot;isInEurope&amp;quot;:true}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;那我们利用JSONModel直接如下写就行了&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objc&quot; data-lang=&quot;objc&quot;&gt;&lt;span class=&quot;cp&quot;&gt;#import &amp;quot;JSONModel.h&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;@interface&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;CountryModel&lt;/span&gt; : &lt;span class=&quot;nc&quot;&gt;JSONModel&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;assign&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSString&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;country&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSString&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dialCode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;assign&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;BOOL&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;isInEurope&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;@end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;只是简简单单的声明了变量即可，其他事情都不需要我们关心了。   &lt;/p&gt;
+
+&lt;p&gt;这么简单了，但是有没有发现它还有问题，每次都要写和json数据一样名字的属性变量，写多了是很烦的。那么是不是可以自动化生成呢。这里就不必我们再自己写了。这里有相关的第三方工具，也有xcode插件供我们选择。
+这里我也推荐两个：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/Ahmed-Ali/JSONExport&quot;&gt;JSONExport&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/EnjoySR/ESJsonFormat-Xcode&quot;&gt;ESJsonFormat-Xcode&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;JSONExport是mac下的工具软件，支持objct-c ,swift，java语言因为作为单独工具可选项比较多。
+ESJsonFormat-Xcode是一个xcode的插件&lt;/p&gt;
+
+&lt;p&gt;那么说到这里是不是&lt;code&gt;全自动化映射&lt;/code&gt;这种方式是不是很完美了?利用JSONModel和JSONExport等工具的结合，基本上不需要写代码就可以实现json到属性的映射。我们再来看一种状况：&lt;/p&gt;
+
+&lt;p&gt;你们公司的后台是个新手，字段命名都是用的拼音，那么这种方式是否还完美？再如果后台因为需要某些字段要换一个名称，那么我们必须要把这个字段相应属性名称改了，然后把用到这个属性的所有地方都改掉。&lt;/p&gt;
+
+&lt;p&gt;看了这些相信有答案了，在大多数情况下全自动映射带给我们非常好的体验，但是偶尔也会给我们带来不必要的困扰。&lt;/p&gt;
+
+&lt;h6&gt;模板映射&lt;/h6&gt;
+
+&lt;p&gt;模板映射也可以说就是半自动化映射，之所以我把它叫做模板映射是因为它需要写代码的地方都是有迹可循的，就像是模板模式，流程都写好了，知识部分地方需要我们填空而已了。在这里我要介绍的是&lt;a href=&quot;https://github.com/Mantle/Mantle&quot;&gt;Mantle&lt;/a&gt;,废话不多说，先看用法：&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objc&quot; data-lang=&quot;objc&quot;&gt; &lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;enum&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSUInteger&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;GHIssueStateOpen&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;GHIssueStateClosed&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;GHIssueState&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;@interface&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;GHIssue&lt;/span&gt; : &lt;span class=&quot;nc&quot;&gt;MTLModel&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MTLJSONSerializing&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;copy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;readonly&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSURL&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;URL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;copy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;readonly&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSURL&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;HTMLURL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;copy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;readonly&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSNumber&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;number&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;assign&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;readonly&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;GHIssueState&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;copy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;readonly&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reporterLogin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;readonly&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;GHUser&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;assignee&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;copy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;readonly&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSDate&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;updatedAt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;copy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;copy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;@property&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nonatomic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;copy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;readonly&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSDate&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;retrievedAt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;@end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objc&quot; data-lang=&quot;objc&quot;&gt;&lt;span class=&quot;k&quot;&gt;@implementation&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;GHIssue&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSDateFormatter&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;dateFormatter&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;bp&quot;&gt;NSDateFormatter&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dateFormatter&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSDateFormatter&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;dateFormatter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;locale&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSLocale&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;initWithLocaleIdentifier&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@&amp;quot;en_US_POSIX&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;dateFormatter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dateFormat&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;@&amp;quot;yyyy-MM-dd&amp;#39;T&amp;#39;HH:mm:ss&amp;#39;Z&amp;#39;&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dateFormatter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSDictionary&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;JSONKeyPathsByPropertyKey&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;l&quot;&gt;@{&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;@&amp;quot;URL&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;@&amp;quot;url&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;@&amp;quot;HTMLURL&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;@&amp;quot;html_url&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;@&amp;quot;number&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;@&amp;quot;number&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;@&amp;quot;state&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;@&amp;quot;state&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;@&amp;quot;reporterLogin&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;@&amp;quot;user.login&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;@&amp;quot;assignee&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;@&amp;quot;assignee&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;@&amp;quot;updatedAt&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;@&amp;quot;updated_at&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;l&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSValueTransformer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;URLJSONTransformer&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSValueTransformer&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;valueTransformerForName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MTLURLValueTransformerName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSValueTransformer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;HTMLURLJSONTransformer&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSValueTransformer&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;valueTransformerForName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MTLURLValueTransformerName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSValueTransformer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;stateJSONTransformer&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSValueTransformer&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;mtl_valueMappingTransformerWithDictionary&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;l&quot;&gt;@{&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;@&amp;quot;open&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l&quot;&gt;@(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GHIssueStateOpen&lt;/span&gt;&lt;span class=&quot;l&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;@&amp;quot;closed&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l&quot;&gt;@(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GHIssueStateClosed&lt;/span&gt;&lt;span class=&quot;l&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;l&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSValueTransformer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;assigneeJSONTransformer&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MTLJSONAdapter&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;dictionaryTransformerWithModelClass&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GHUser&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSValueTransformer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;updatedAtJSONTransformer&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MTLValueTransformer&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;transformerUsingForwardBlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dateString&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;BOOL&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;success&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSError&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;__autoreleasing&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dateFormatter&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;dateFromString&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dateString&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;reverseBlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSDate&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;date&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;BOOL&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;success&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSError&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;__autoreleasing&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dateFormatter&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;stringFromDate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;date&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}];&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;instancetype&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;initWithDictionary:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSDictionary&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;dictionaryValue&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;error:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSError&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;**&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;error&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;super&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;initWithDictionary&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dictionaryValue&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// Store a value that needs to be determined locally upon initialization.&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;_retrievedAt&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSDate&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;date&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;@end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;在这里，我们必须要声明每个属性，然后.m文件里面也要根据你的需要写一大堆代码。一眼看下去眼花缭乱的，貌似比&lt;code&gt;全自动映射&lt;/code&gt;差太多了。但是就是它可以很轻松的解决&lt;code&gt;全自动映射&lt;/code&gt;方式的不足。他是如何解决的？关键就在这一段代码&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objc&quot; data-lang=&quot;objc&quot;&gt;&lt;span class=&quot;p&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSDictionary&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;JSONKeyPathsByPropertyKey&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;l&quot;&gt;@{&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;@&amp;quot;URL&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;@&amp;quot;url&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;@&amp;quot;HTMLURL&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;@&amp;quot;html_url&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;@&amp;quot;number&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;@&amp;quot;number&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;@&amp;quot;state&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;@&amp;quot;state&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;@&amp;quot;reporterLogin&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;@&amp;quot;user.login&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;@&amp;quot;assignee&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;@&amp;quot;assignee&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;@&amp;quot;updatedAt&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;@&amp;quot;updated_at&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;l&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;它提供了一个映射转换。再加上数据库和远端数据字段映射，那么模型类的容错能力就大大增加了，简而言之就是兼容性非常好了。&lt;/p&gt;
+
+&lt;h6&gt;有确定对比&lt;/h6&gt;
+
+&lt;p&gt;这里我们来分析下这三种类型的优缺点，&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;代码冗余量   &lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;全自动映射&lt;/code&gt;必定是最优的，因为配合工具基本上不需要写什么代码。而&lt;code&gt;全手动实现&lt;/code&gt;代码冗余量毫无疑问是最多了，因为所有代码完全由你自己写出来了。&lt;code&gt;全手动实现&lt;/code&gt;则是中规中矩了。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;兼容性&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;全自动映射&lt;/code&gt;必定是最差的，因为配合工具，完全你没办法改里面的代码。而&lt;code&gt;全手动实现&lt;/code&gt;和模板映射基本上拥有同样的兼容性。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;综合评比&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;三者之间好像各有千秋，什么样的项目配合什么样的方式，我只是分析它，这个选择留给你自己&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;但是这里我们主要来考虑，我想要一个兼容性好的但是代码冗余小的方式，怎么办？我的回答是&lt;code&gt;模板映射&lt;/code&gt;,这个问题我也深思熟虑过，那么我们就得解决代码冗余的问题了。怎么样的方式去解决它？下面的第二篇我将会具体说怎么解决，在这里先感谢ruby...&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>写简化工作的工具</title>
+   <link href="http://lanyon.getpoole.com/2015/05/31/working-tools/"/>
+   <updated>2015-05-31T00:00:00+08:00</updated>
+   <id>http://lanyon.getpoole.com/2015/05/31/working-tools</id>
+   <content type="html">&lt;h4&gt;为工作写工具&lt;/h4&gt;
+
+&lt;p&gt;在工作中，我们在写程序的工程中，遇到代码重复性很高的时候，我们可以选择重构简化代码。在其他的方面，如果总要做一些固定流程的工作，而且经常要一步步的重复操作，作为优秀的程序员，绝对是相当受不了的（因为传说优秀的程序员都很懒）。这个时候我们就可以为简化自己的工作写一些实用的校工作连简化自己的工作，以后就既轻松而且happy了。下面来看看我自己写的一些小工具。&lt;/p&gt;
+
+&lt;h5&gt;fetchapp ： 查询苹果软件相关信息&lt;/h5&gt;
+
+&lt;p&gt;由于工作需要，我们要知道苹果手机和平板上有哪些app以及它的相关信息，比如：bundle id ,版本信息。其他同事想着一个程序一个程序的下载，软后看它的相关信息（软件包解压之后可以看到）。但是我又觉得它太慢反。想到为什么不写个程序来简化它呢（因为一个个装既费时也费力）。于是我网上查了一些。查询相关方法。于是就着手写了。只想写个小工具，于是就用ruby来写（脚本方便，包管理安装都很方便）。&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;安装方式是  gem install :
+
+使用格式如下 fetchapp -t  [iphone ipad mac]  -a 
+
+没有写文档，因为没有写太多的功能，这里是一个例子
+
+fetchapp -t iphone&amp;lt;br&amp;gt;
+start request .....
+request OK !
+------iTunes U------com.apple.itunesu---------
+------查找我的 iPhone------com.apple.mobileme.fmip1---------
+------iBooks------com.apple.iBooks---------
+------Podcasts------com.apple.podcasts---------
+------查找我的朋友------com.apple.mobileme.fmf1---------
+------Pages------com.apple.Pages---------
+------iMovie------com.apple.iMovie---------
+------Numbers------com.apple.Numbers---------
+------Keynote------com.apple.Keynote---------
+------GarageBand------com.apple.mobilegarageband---------
+------Apple Store------com.apple.store.Jolly---------
+------Remote------com.apple.Remote---------
+------AirPort 实用工具------com.apple.airport.mobileairportutility---------
+------iTunes Connect------com.apple.itunesconnect.mobile---------
+------WWDC------developer.apple.wwdc-Release---------
+------TestFlight------com.apple.TestFlight---------
+这是打印比较简单的信息，加-a之后，会打印比较全面一些的信息。基本用法就是这样。如果有时间，以后会加入更多一些的功能。 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;以上是第一版，功能只有以上简单的查询苹果app的方式，后来于是又加了一些功能。也写了相关的用法的简单的文档。修改版本如下,可以根据app的名称和id来查询相关信息，功法如下：&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;fetchapp  -h
+fetchapp -[options] value
+find apple app info!
+options: 
+name   : app name 
+type   : app type [mac iphone ipad]
+id     : app item id 
+count  : show the count of items,default is 200
+apple  : show apple&amp;#39;s app
+all    : show detail info
+h      : help
+
+note: if you can&amp;#39;t use both of name and id at same time.
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;如果需要，安装方式可以直接在终端下输入：&lt;code&gt;sudo gem install fetchapp&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h5&gt;certstepper ：简化苹果证书申请流程&lt;/h5&gt;
+
+&lt;p&gt;比较有意思的是，最近写certstepper的过程。由于工作的特殊需要要经常申请苹果证书。久而久之，就是那么几部操作，无非就是创建文件夹，粘贴复制，点击网页下一步，然后把证书和配置文件命名成合适的名称，然后移动到创建的目录。这个能够简化的流程有限，于是我想简化复制粘贴和移动配置文件的工作，当然我是用ruby来写的。在导出证书方面可能就有些麻烦了。就没有简化证书从钥匙串导出的过程。这个有时间我可以研究一下。下面来看看申请证书的具体流程：&lt;br&gt;
+申请的账号信息如下:&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;12313214214@163.com  //账号
+123456789            //密码
+com.example.test     //bundle id
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;正常步骤如下：   &lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;复制密码账号，登录开发账号&lt;/li&gt;
+&lt;li&gt;把申请证书的文件放到指定文件夹下&lt;/li&gt;
+&lt;li&gt;利用申请的文件创建证书导出，并放到指定文件夹下&lt;/li&gt;
+&lt;li&gt;新建相应的app id&lt;/li&gt;
+&lt;li&gt;利用bundle id信息创建配置文件&lt;/li&gt;
+&lt;li&gt;移动配置文件到指定目录下&lt;/li&gt;
+&lt;li&gt;如果有多个信息，重复1操作&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;写了certstepper之后，把申请的账号信息经过简化之后如下：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;把账号信息写到文件下，例如~/Desktop/CertProduct/certs&lt;/li&gt;
+&lt;li&gt;运行certstepper ~/Desktop/CertProduct/certs&lt;/li&gt;
+&lt;li&gt;然后点击enter会把账号名复制到剪切板，再点击enter就会吧密码复制到剪切板。这样就可以登录了。不用每次都打开文件，选择复制粘贴到网页&lt;/li&gt;
+&lt;li&gt;创建证书，这一步没有简化&lt;/li&gt;
+&lt;li&gt;创建app id。终端点击enter，名字到剪切板 ， 再点击bundle id 到剪切板&lt;/li&gt;
+&lt;li&gt;创建配置文件，同理，每次enter之后都可以直接在网页相应的位置粘贴了&lt;/li&gt;
+&lt;li&gt;最后一步enter直接会将下载的配置文件移动到指定文件夹下&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;其实步骤并没有少，只是简化了文件移动和复制粘贴的过程。但是在这个过程中。我们可以看到，我们需要在终端和网页之间来回切换。这是很麻烦的事情了。于是我想，是不是有什么方法简化这样的一个过程呢。最初想到的是 &lt;code&gt;safari extension&lt;/code&gt;。可是safari extension不能直接调用本地的脚本程序。于是放弃了（其实还是有可行的方案，只是没有尝试，这里卖卖关子，等花点时间尝试出来再说）。于是又想，其实qq那样的菜单栏上面的快捷方式挺好的，于是就写了一个类似的程序。这样就解决了程序之间来回切换的工程了。
+总结一下：&lt;/p&gt;
+
+&lt;p&gt;程序直接来还切换的解决方式：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;利用safari extension ，但是它不能直接调用本地的脚本和程序&lt;/li&gt;
+&lt;li&gt;利用qq那样状态栏上面的快捷方式，就像wifi，电池状态的那种，无时无刻都显示在那。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;我完成了第二种方式。
+这里是certstepper 的安装方式： &lt;code&gt;sudo gem install certstepper&lt;/code&gt;,那个状态菜单的程序，还没有传到网上，过两天就附上。&lt;/p&gt;
+
+&lt;h5&gt;总结&lt;/h5&gt;
+
+&lt;p&gt;总之在工作中，我们可以想到用各种各样的方式去简化我们的工作，当然你不可能只会一样东西了。不能说你坐ios就只会object c。很多东邪我们都要用平常的业余时间去学习。例如我现在觉得我其他知识层面比较匮乏，于是我买了很多计算机系统、网络方面的书籍。总之，学无止境。用我们学到的知识运用到生活和工作中。这样不容易忘记而有所成。满足感促进我们再去学习。 &lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>学Swift</title>
+   <link href="http://lanyon.getpoole.com/2015/03/31/Swift-Study/"/>
+   <updated>2015-03-31T00:00:00+08:00</updated>
+   <id>http://lanyon.getpoole.com/2015/03/31/Swift-Study</id>
+   <content type="html">&lt;h4&gt;新特性：&lt;/h4&gt;
+
+&lt;h5&gt;基础类型：&lt;/h5&gt;
+
+&lt;ul&gt;
+&lt;li&gt;常用基本类型 Int  Double  Float Turple 类型都是结构体了。它们可以和类一样拥有自己的方法，但是在进行表达式的类型转换的时候，swift中必须显示转换&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;对于option主要是用于状态的判断,它不能直接用于运算，如果没有初始值会自动为nil。表现方式如下：  &lt;/p&gt;
+
+&lt;p&gt;“​var​ ​serverResponseCode​: ​Int​? = ​404”&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;主要作用：nil 可以适用于任何option类型和类，我们可以在if或者其他的状态变化中用nil来做判断 ，如下：&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;convertedNumber&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;possibleNumber&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toInt&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+ &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;convertedNumber&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;          &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;convertedNumber contains some integer value.&amp;quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;      &lt;span class=&quot;c1&quot;&gt;// prints &amp;quot;convertedNumber contains some integer value.”&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;可以通过&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;optional&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;变量后面加！来告诉编译器已经确认它必定不为&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;，如果为&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;编译器会报错&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;基础操作：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;%可以用于浮点型  “a = (b × some multiplier) + remainder”&lt;/li&gt;
+&lt;li&gt;a..&amp;lt;b  和  a…b 符号的加入 半开运算符比较实用于0 开始的数组，如下：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;err&quot;&gt;“​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;names&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Anna&amp;quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Alex&amp;quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Brian&amp;quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Jack&amp;quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;names&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;in&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Person ​\(​i​ + ​1​)​ is called ​\(​names​[​i​])​&amp;quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;c1&quot;&gt;// Person 1 is called Anna&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;c1&quot;&gt;// Person 2 is called Alex&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;c1&quot;&gt;// Person 3 is called Brian&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;c1&quot;&gt;// Person 4 is called Jack”&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;=== 和 !== 运算符来判断是否是同一个变量
+= 没有任何返回值&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;c1&quot;&gt;// this is not valid, because x = y does not return a value&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;?? 空合并运算符， a ?? b 等价于 “a​ != ​nil​ ? ​a​! : ​b“ 。需要注意的是 b 必须和 a 中的值是一个类型的&lt;br&gt;
+在逻辑运算符中可以 直接 if a &amp;amp;&amp;amp; b || c || d 这样连续，但是在oc中是不可以的。&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h5&gt;字符串：&lt;/h5&gt;
+
+&lt;ul&gt;
+&lt;li&gt;字符串在swift中是值类型，而并非指针类型。它在传值的时候会被拷贝。(因为String 式结构体，结构体和类的区别就是传值的时候结构体是拷贝的&lt;br&gt;&lt;/li&gt;
+&lt;li&gt;+ 运算符加入&lt;/li&gt;
+&lt;li&gt;\() 在字符串中填写表达式进行字符串的插入&lt;/li&gt;
+&lt;li&gt;countElements可以计算出字符串的个数，能够正确兼容Unicode，在object-C length 方法在计算中文的时候一个字length是2&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h5&gt;集合：&lt;/h5&gt;
+
+&lt;h6&gt;Array:&lt;/h6&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;在swift中集合是又类型的。不论是显示(Array&lt;SomeType&gt;)还是隐式生成。例如一定你第一个插入了Int 你不能再插入非Int的类型了。而它也带了一个好处：不是只能插入类。他们都是结构体&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;nl&quot;&gt;Array&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;显示定义以及初始化：&lt;/span&gt;
+ &lt;span class=&quot;err&quot;&gt;“&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;var&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;shoppingList&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Eggs&amp;quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Milk&amp;quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;”&lt;/span&gt;
+ &lt;span class=&quot;err&quot;&gt;“​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;var&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;threeDoubles&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Double&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;](&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;repeatedValue&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.0&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;”&lt;/span&gt;
+ &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;someInts&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;用+=向Array中添加元素&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Array之间可以 + 相加&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;用a[1] = b 改变Array元素的值 或者用 a[1…3] = [b,c,d] 形式来进行连续赋值&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Array遍历：&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;index&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;in&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;enumerate&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;shoppingList&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Item ​\(​index​ + ​1​)​: ​\(​value​)​&amp;quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h6&gt;Dictinary:&lt;/h6&gt;
+
+&lt;ul&gt;
+&lt;li&gt;hash 值是由 == 来决定的&lt;/li&gt;
+&lt;li&gt;swift中使用“[key 1: value 1, key 2: value 2, key 3: value 3]”来定义dictionary。 而不是Object-c 中的{key1 : value1 , key2 : value2 } ，&lt;/li&gt;
+&lt;li&gt;a[b] = c形式进行赋值&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;遍历：&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;airportCode&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;airportName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;in&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;airports&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;​\(​airportCode​)​: ​\(​airportName​)​&amp;quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h5&gt;控制：&lt;/h5&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Turple作为判断条件的时候比较特殊，具体看教程&lt;/li&gt;
+&lt;li&gt;switch 中 可以默认不用写break，他会自己break。 break的作用作于你想提前break。 fallthrough关键字能够让switch判断继续向下走而不是break了,他不会判断下个case的条件，而是直接执行下个case里面的代码&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;可以用如下进行复杂的流程控制，循环和switch嵌套的话，continue、  ， 用来控制作用于那个（这个功能非常有用)&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;“label name: while condition {
+    statements
+}”
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h5&gt;函数：&lt;/h5&gt;
+
+&lt;ul&gt;
+&lt;li&gt;func 可以返回Turple 类型，也就是返回多值&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;func 可以带外部名称 ，函数内部必须用 localParameterName  调用函数的时候用 externalParameterName 。 当两者名字一样的时候直接在名字前面加#&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;k&quot;&gt;func&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;someFunction&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;externalParameterName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;localParameterName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;c1&quot;&gt;// function body goes here, and can use localParameterName&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;c1&quot;&gt;// to refer to the argument value for that parameter&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;func 可以带可变参数 … ,可变参数放到最后一个&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;参数默认是常量，你不可以改变它。 你也可以设置变量，但是他是本身copy的一个新变量。 如果你想在函数里面更改传入参数的值，那么在定义参数的时候加关键字inout . 注意：在swift中参数的传递已经不区分深复制和浅复制了，只有没有加inout，都不会修改原来传递的值。而object-c中如果传入的是对象或者集合都是可以改变原值的。swift让用户显示调用，更加安全。&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;函数可以作为变量使用，可以作为参数传入函数，可以作为返回值&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;“var​ ​mathFunction​: (​Int​, ​Int​) -&amp;gt; ​Int​ = ​addTwoInts”
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;函数可以嵌套定义。就是函数里面定义函数，这是一种特殊形式的闭包&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h5&gt;闭包：&lt;/h5&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;闭包无名称函数&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parameters&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;statements&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;它可以根据上下文来判断参数和返回值的类型，可以简化&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reversed&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sorted&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;names&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s1&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s2&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Bool&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;in&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s1&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s2&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;简化成
+&lt;code&gt;swift
+    ​reversed​ = ​sorted​(​names​, { ​s1​, ​s2​ ​in​ ​return​ ​s1​ &amp;gt; ​s2​ } )
+&lt;/code&gt;
+单个表达式的闭包可以自动return，我们可以省略return 
+&lt;code&gt;swift
+​reversed​ = ​sorted​(​names​, { ​s1​, ​s2​ ​in​ ​s1​ &amp;gt; ​s2​ } )
+&lt;/code&gt;
+闭包提供了一个速记的参数形式$1 $2 $3 ,分别代表第一个，第二个，第三个参数
+&lt;code&gt;swift
+reversed​ = ​sorted​(​names​, { ​$0​ &amp;gt; ​$1​ } )
+&lt;/code&gt;
+由于String 实现了 &amp;gt; 方法，所以简化为
+&lt;code&gt;swift
+​reversed​ = ​sorted​(​names​, &amp;gt;)
+&lt;/code&gt;
+尾部闭包，主要作用于让函数体比较大的闭包方便显示
+&lt;code&gt;swift
+reversed​ = ​sorted​(​names​) { ​$0​ &amp;gt; ​$1​ }
+&lt;/code&gt;
+* 闭包捕获上下午的值是引用，而不是copy&lt;/p&gt;
+
+&lt;h5&gt;枚举：&lt;/h5&gt;
+
+&lt;p&gt;swift中枚举不会自定赋0、1、2 ...的默认值，首字母必须大写&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;enum&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CompassPoint&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;case&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;North&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;case&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;South&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;case&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;East&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;case&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;West&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;或者&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;k&quot;&gt;enum&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Planet&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;case&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Mercury&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Venus&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Earth&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Mars&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Jupiter&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Saturn&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Uranus&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Neptune&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;每一个enum的成员都可以是其他的任何类型，它可以让使用者存储附加信息。例如：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;k&quot;&gt;enum&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Barcode&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;case&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;UPCA&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;case&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;QRCode&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;可以通过raw value 来获取enum的值，它返回的是optional值，raw value 为了让使用者和c 模式一样，直接通过 1，2，3，4...来比较. 例如&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;“​let​ ​possiblePlanet​ = ​Planet​(​rawValue​: ​7​)”
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h5&gt;类和结构体：&lt;/h5&gt;
+
+&lt;ul&gt;
+&lt;li&gt;类比结构体多的功能：
+
+&lt;ul&gt;
+&lt;li&gt;继承&lt;/li&gt;
+&lt;li&gt;类型转换 列入  a = (String *) &lt;/li&gt;
+&lt;li&gt;Deinitializers释放实例占有的资源&lt;/li&gt;
+&lt;li&gt;引用数可以大于1 。 （结构体是copy，所以只有1）&lt;/li&gt;
+&lt;li&gt;对于Stuct 可以，直接用成员初始化，而class不行&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;err&quot;&gt;“&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Resolution&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;var&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;width&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;var&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;height&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vga&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Resolution&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;width&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;640&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;height&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;480&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;特性：
+成员变量中可以用 lazy 关键字进行修饰，它表示延迟加载，只有当第一次调用该成员变量的时候，该成员变量才会被创建。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;n&quot;&gt;lazy&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;var&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;importer&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DataImporter&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;计算属性格式 ，set函数没有参数，默认有个值 newValue可以提供使用：&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AlternativeRect&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;var&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;origin&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Point&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;var&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Size&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;var&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;center&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Point&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;     &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;kr&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;         &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;centerX&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;origin&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;width&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;         &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;centerY&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;origin&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;height&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;         &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Point&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;centerX&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;centerY&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;     &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;     &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;kr&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;         &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;origin&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;newValue&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;width&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;         &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;origin&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;newValue&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;height&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;     &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;只读属性直接在计算属性的基础上，写函数体然后return就可以了&lt;/li&gt;
+&lt;li&gt;属性监听，willSet , didSet 。 在willSet 中可以用newValue来获取新值，在didSet中可以用oldValue获取旧值，如果在didSet中给该属性赋值，他会替换刚刚付的值&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;StepCounter&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;var&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;totalSteps&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;     &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;kr&quot;&gt;willSet&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;newTotalSteps&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;         &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;About to set totalSteps to ​\(​newTotalSteps​)​&amp;quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;     &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;     &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;kr&quot;&gt;didSet&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;         &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;totalSteps&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;oldValue&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;  &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;             &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Added ​\(​totalSteps​ - ​oldValue​)​ steps&amp;quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;         &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;     &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;类型成员变量，也就是object-c中的类静态变量。用static 关键字修饰，如果在类里面用class 修饰&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-swift&quot; data-lang=&quot;swift&quot;&gt;&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;var&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;storedTypeProperty&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;​&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;​&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Some value.&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;类，结构体和枚举类型都可以定义方法&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</content>
+ </entry>
  
  <entry>
    <title>搭建Jekyll博客</title>
@@ -37,7 +942,7 @@
 
 &lt;ul&gt;
 &lt;li&gt;&lt;p&gt;安装Jekyll，创建blog。比如创建一个my-awesome-site的博客&lt;/p&gt;
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;text language-text&quot; data-lang=&quot;text&quot;&gt;gem install jekyll
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;gem install jekyll
 jekyll new my-awesome-site
 cd my-awesome-site
 jekyll serve
@@ -54,7 +959,7 @@ jekyll serve
 
 &lt;p&gt;Jekyll默认是用的&lt;code&gt;Pygments&lt;/code&gt;来生成代码块高亮的，&lt;code&gt;Pygments&lt;/code&gt;支持100多种语言，使用起来相对于比较方便。但是它的使用会直接破坏markdown的风格。
 它使用方式如下：&lt;/p&gt;
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;text language-text&quot; data-lang=&quot;text&quot;&gt;```c
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;```c
 /* hello world demo */
 #include &amp;lt;stdio.h&amp;gt;
 int main(int argc, char **argv)
@@ -66,23 +971,21 @@ int main(int argc, char **argv)
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;会产生如下效果&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;c&quot;&gt;    &lt;span class=&quot;cm&quot;&gt;/* hello world demo */&lt;/span&gt;
-    &lt;span class=&quot;err&quot;&gt;#&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;stdio&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;h&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;argc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;**&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot; data-lang=&quot;c&quot;&gt;&lt;span class=&quot;cm&quot;&gt;/* hello world demo */&lt;/span&gt;
+    &lt;span class=&quot;cp&quot;&gt;#include &amp;lt;stdio.h&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;argc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;**&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
     &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
         &lt;span class=&quot;n&quot;&gt;printf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Hello, World!&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
         &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-    
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;如果你这样使用在markdown编辑器中预览的时候，你会看到很丑陋的页面风格。但是在Jekyll站定中打开的时候，页面就是正常的(所以说它破坏了markdown的封装)。&lt;/p&gt;
 
 &lt;p&gt;至于更换代码显示的风格可以调用如下命令生成CSS。&lt;/p&gt;
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;text language-text&quot; data-lang=&quot;text&quot;&gt;pygmentize -S monokai -f html &amp;gt; your/path/pygments.css  
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;pygmentize -S monokai -f html &amp;gt; your/path/pygments.css  
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;然后包含到你blog的default.html中&lt;/p&gt;
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;text language-text&quot; data-lang=&quot;text&quot;&gt;&amp;lt;link rel=&amp;quot;stylesheet&amp;quot; href=&amp;quot;/your/path/pygments.css&amp;quot;&amp;gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;&amp;lt;link rel=&amp;quot;stylesheet&amp;quot; href=&amp;quot;/your/path/pygments.css&amp;quot;&amp;gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;&lt;em&gt;注意: 如果之前有包含Pygments的CSS记得去掉他，或者在包含的时候直接替换掉它&lt;/em&gt;  &lt;/p&gt;
 
@@ -91,10 +994,10 @@ int main(int argc, char **argv)
 &lt;h6&gt;google code prettify&lt;/h6&gt;
 
 &lt;p&gt;&lt;a href=&quot;https://code.google.com/p/google-code-prettify/&quot;&gt;google code prettify&lt;/a&gt;使用方法很简单，他可以自动识别语言，不需要想pygments一样需要表明。可以镶嵌代码块的时候保持了markdown的语言格式。但是它本身提供的语言支持相比pygments要少得多，但是你可以自己写扩展。如果你有兴趣你可以尝试写。关于使用可以直接包含run_prettify.js代码&lt;/p&gt;
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;text language-text&quot; data-lang=&quot;text&quot;&gt;&amp;lt;script src=&amp;quot;https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js&amp;quot;&amp;gt;&amp;lt;/script&amp;gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;&amp;lt;script src=&amp;quot;https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js&amp;quot;&amp;gt;&amp;lt;/script&amp;gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;或者我们直接通过下载代码到博客的目录中进行本地包含。在定义博客内容的html的body的最后包含如下脚本&lt;/p&gt;
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;js language-js&quot; data-lang=&quot;js&quot;&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;link&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;rel&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;stylesheet&amp;quot;&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;href&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;/public/js/prettify/prettify.css&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-js&quot; data-lang=&quot;js&quot;&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;link&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;rel&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;stylesheet&amp;quot;&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;href&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;/public/js/prettify/prettify.css&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;
 &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;script&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;src&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;/public/js/prettify/prettify.js&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;/script&amp;gt;&lt;/span&gt;
 &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;script&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;text/javascript&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;
   &lt;span class=&quot;nx&quot;&gt;$&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(){&lt;/span&gt;
@@ -133,37 +1036,37 @@ int main(int argc, char **argv)
 关于它的组成有这几个RACSignal, RACSubscriber,RACDisposable这三个主要对象，这是三个基础类，其他基本上都是这三个的子类(当然RACSignal是继承RACStream),其实RACSignal是信号流，是RAC的主要类，RACSubscriber是接受者，RACSignal
 会存储它所有的RACSubscriber,一旦有新的变化RACSignal会通知所有的RACSubscriber，最后RACDisposable是用来清理和释放内存的。
   我们来简单分析一下代码：          &lt;/p&gt;
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;objc language-objc&quot; data-lang=&quot;objc&quot;&gt;&lt;span class=&quot;k&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACSignal&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;createSignal:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACDisposable&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACSubscriber&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;subscriber&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;didSubscribe&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACDynamicSignal&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createSignal&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;didSubscribe&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objc&quot; data-lang=&quot;objc&quot;&gt;&lt;span class=&quot;p&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACSignal&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;createSignal:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACDisposable&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACSubscriber&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;subscriber&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;didSubscribe&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACDynamicSignal&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;createSignal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;didSubscribe&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
 &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;我们可以看到，其实RACSignal创建的是它的子类RACDynamicSignal。我们再跟进去它的另一个方法&lt;/p&gt;
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;objc language-objc&quot; data-lang=&quot;objc&quot;&gt;&lt;span class=&quot;k&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACDisposable&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;subscribe:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACSubscriber&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;subscriber&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objc&quot; data-lang=&quot;objc&quot;&gt;&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACDisposable&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;subscribe:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACSubscriber&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;subscriber&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
     &lt;span class=&quot;n&quot;&gt;NSCAssert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;NO&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;@&amp;quot;This method must be overridden by subclasses&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
     &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
 &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
 
-&lt;span class=&quot;k&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACDisposable&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;subscribeNext:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;nextBlock&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACDisposable&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;subscribeNext:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;nextBlock&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
     &lt;span class=&quot;n&quot;&gt;NSCParameterAssert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nextBlock&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
 
-    &lt;span class=&quot;n&quot;&gt;RACSubscriber&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;o&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACSubscriber&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;subscriberWithNext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nextBlock&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;completed&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;subscribe&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;o&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;RACSubscriber&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;o&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACSubscriber&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;subscriberWithNext&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nextBlock&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;completed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;subscribe&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;o&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
 &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;   
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;我们看到了如下的方法，首先通过nextblock 创建一个RACSubscriber对象，然后进行了subscribe操作，那么这个操作是什么作用了？应该是对RACSubscriber的相关处理，在RACSignal 中subcribe方法是空，因为创建实际上穿件的是RACDynamicSignal，所以我们跟进到它的sbucribe方法中。&lt;/p&gt;
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;objc language-objc&quot; data-lang=&quot;objc&quot;&gt;&lt;span class=&quot;k&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACDisposable&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;subscribe:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACSubscriber&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;subscriber&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objc&quot; data-lang=&quot;objc&quot;&gt;&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACDisposable&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;subscribe:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACSubscriber&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;subscriber&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
     &lt;span class=&quot;n&quot;&gt;NSCParameterAssert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;subscriber&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
 
     &lt;span class=&quot;n&quot;&gt;RACCompoundDisposable&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;disposable&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACCompoundDisposable&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compoundDisposable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;subscriber&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACPassthroughSubscriber&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;initWithSubscriber&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;subscriber&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;signal&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;disposable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;disposable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;subscriber&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACPassthroughSubscriber&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;initWithSubscriber&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;subscriber&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;signal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;disposable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;disposable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
 
-    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;didSubscribe&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;RACDisposable&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;schedulingDisposable&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACScheduler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;subscriptionScheduler&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;schedule&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:^&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;RACDisposable&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;innerDisposable&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;didSubscribe&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;subscriber&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-            &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;disposable&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;addDisposable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;innerDisposable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;didSubscribe&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;RACDisposable&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;schedulingDisposable&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACScheduler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;subscriptionScheduler&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;schedule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;RACDisposable&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;innerDisposable&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;didSubscribe&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;subscriber&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;disposable&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;addDisposable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;innerDisposable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
         &lt;span class=&quot;p&quot;&gt;}];&lt;/span&gt;
 
-        &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;disposable&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;addDisposable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;schedulingDisposable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;disposable&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;addDisposable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;schedulingDisposable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
     &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
 
     &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;disposable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
@@ -172,8 +1075,8 @@ int main(int argc, char **argv)
 &lt;p&gt;我们主要看标注的地方，上面的&lt;em&gt;subscribers储存所有加入的RACSubscriber,然后下面的方法，我们仔细观察它调用了self.didSubscribe(subscriber),来回调我们刚刚创建RACSignal的那个didsubcribe的block。接下来我们进行关键的步骤，分析它是如何监听的：
 #define RACObserve(TARGET, KEYPATH) \    [(id)(TARGET) rac&lt;/em&gt;valuesForKeyPath:@keypath(TARGET, KEYPATH) observer:self]
 监听的宏定义，在NSObject+RACPropertySubscribing.h中,然后一直跟进去，由于调用太频繁了，具体跟踪就不写了。最后我们可以在NSObject+RACKVOWrapper的里面发现这样一个方法&lt;/p&gt;
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;objc language-objc&quot; data-lang=&quot;objc&quot;&gt;&lt;span class=&quot;n&quot;&gt;NSKeyValueObservingOptions&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;trampolineOptions&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;options&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NSKeyValueObservingOptionPrior&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;~&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NSKeyValueObservingOptionInitial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;RACKVOTrampoline&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;trampoline&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACKVOTrampoline&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;initWithTarget&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;observer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;strongObserver&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keyPath&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;keyPathHead&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;options&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;trampolineOptions&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;block&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:^&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;trampolineTarget&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;trampolineObserver&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NSDictionary&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;change&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objc&quot; data-lang=&quot;objc&quot;&gt;&lt;span class=&quot;n&quot;&gt;NSKeyValueObservingOptions&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;trampolineOptions&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;options&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NSKeyValueObservingOptionPrior&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;~&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NSKeyValueObservingOptionInitial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;RACKVOTrampoline&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;trampoline&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACKVOTrampoline&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;initWithTarget&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;observer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;strongObserver&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;keyPath&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;keyPathHead&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;options&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;trampolineOptions&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;block&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;trampolineTarget&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;trampolineObserver&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;NSDictionary&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;change&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
     &lt;span class=&quot;c1&quot;&gt;// If this is a prior notification, clean up all the callbacks added to the&lt;/span&gt;
     &lt;span class=&quot;c1&quot;&gt;// previous value and call the callback block. Everything else is deferred&lt;/span&gt;
     &lt;span class=&quot;c1&quot;&gt;// until after we get the notification after the change.&lt;/span&gt;
@@ -181,13 +1084,13 @@ int main(int argc, char **argv)
         &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;firstComponentDisposable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dispose&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
 
         &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;options&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NSKeyValueObservingOptionPrior&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;block&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;trampolineTarget&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;valueForKeyPath&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;keyPath&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;change&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;NO&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keyPathHasOneComponent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;block&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;trampolineTarget&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;valueForKeyPath&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;keyPath&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;change&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;NO&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keyPathHasOneComponent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
         &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
 
         &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
     &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;   
 
-    &lt;span class=&quot;n&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;bp&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;然后我们再跟进RACKVOTrampoline中,会发现一个特别的东西里面的原理了，原来也是通过调用KVO来实现的。在RACKVOTrampoline的
 observeValueForKeyPath:ofObject:change:context:

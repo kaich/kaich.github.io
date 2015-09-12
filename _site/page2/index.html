@@ -11,7 +11,7 @@
 
   <title>
     
-      复杂的ReactiveCocoa &middot; kai cheng
+      kai cheng &middot; ios develop blog
     
   </title>
 
@@ -104,10 +104,18 @@
       </div>
 
       <div class="container content">
-        <div class="post">
-  <h1 class="post-title">复杂的ReactiveCocoa</h1>
-  <span class="post-date">29 Jul 2014</span>
-  <p>关于ReactiveCocoa的 文章有很多，但是能够从根本上详细介绍它的太少了，基本上没有。甚至看完了都不知道什么叫side effect。关于字面上方法的介绍这里不做讨论，我们具体来分析它的原理和代码的结构分析，看它监听是如何实现的。帮助我们从根本上理解它。
+        <div class="posts">
+  
+  <div class="post">
+    <h1 class="post-title">
+      <a href="/2014/07/29/introducing-reactivecocoa/">
+        复杂的ReactiveCocoa
+      </a>
+    </h1>
+
+    <span class="post-date">29 Jul 2014</span>
+
+    <p>关于ReactiveCocoa的 文章有很多，但是能够从根本上详细介绍它的太少了，基本上没有。甚至看完了都不知道什么叫side effect。关于字面上方法的介绍这里不做讨论，我们具体来分析它的原理和代码的结构分析，看它监听是如何实现的。帮助我们从根本上理解它。
 关于它的组成有这几个RACSignal, RACSubscriber,RACDisposable这三个主要对象，这是三个基础类，其他基本上都是这三个的子类(当然RACSignal是继承RACStream),其实RACSignal是信号流，是RAC的主要类，RACSubscriber是接受者，RACSignal
 会存储它所有的RACSubscriber,一旦有新的变化RACSignal会通知所有的RACSubscriber，最后RACDisposable是用来清理和释放内存的。
   我们来简单分析一下代码：          </p>
@@ -173,9 +181,9 @@ observeValueForKeyPath:ofObject:change:context:
 
 <p>关于这篇是仓促之下写下的，以后会吧图片替换成code，并且修缮这blog。</p>
 
-  
-  <!-- 多说评论框 start -->
-	<div class="ds-thread" data-thread-key=/2014/07/29/introducing-reactivecocoa data-title=复杂的ReactiveCocoa data-url=/2014/07/29/introducing-reactivecocoa/></div>
+    
+      <!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key= data-title=Home data-url=/page2/></div>
 <!-- 多说评论框 end -->
 <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
 <script type="text/javascript">
@@ -190,55 +198,22 @@ var duoshuoQuery = {short_name:"kaich"};
 	})();
 	</script>
 <!-- 多说公共JS代码 end -->
-
-<!-- 网站分析  -->
-<script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-  ga('create', 'UA-61579283-1', 'auto');
-  ga('send', 'pageview');
-
-</script>
-<!-- 网站分析  end-->
+    
+  </div>
   
 </div>
 
-<div class="related">
-  <h2>Related Posts</h2>
-  <ul class="related-posts">
+<div class="pagination">
+  
+    <span class="pagination-item older">Older</span>
+  
+  
     
-      <li>
-        <h3>
-          <a href="/2015/08/26/Rake-Tutorial/">
-            Rake 教程
-            <small>26 Aug 2015</small>
-          </a>
-        </h3>
-      </li>
+      <a class="pagination-item newer" href="/">Newer</a>
     
-      <li>
-        <h3>
-          <a href="/2015/08/11/ptgen/">
-            像rails创建IOS模型类
-            <small>11 Aug 2015</small>
-          </a>
-        </h3>
-      </li>
-    
-      <li>
-        <h3>
-          <a href="/2015/05/31/working-tools/">
-            写简化工作的工具
-            <small>31 May 2015</small>
-          </a>
-        </h3>
-      </li>
-    
-  </ul>
+  
 </div>
+
 
       </div>
     </div>
