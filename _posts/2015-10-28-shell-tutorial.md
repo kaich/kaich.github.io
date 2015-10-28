@@ -15,7 +15,7 @@ Ken Thompson的sh是第一种Unix Shell，Windows Explorer是一个典型的图�
 #####变量
 定义变量时候，变量名不加美元符号（$）,但是在时候的时候要在变量前面加美元符号（$）.例如：
 
-```shell
+```sh
 name="xiaoming"
 ```
 `注意，变量名和等号之间不能有空格，这可能和你熟悉的所有编程语言都不一样`
@@ -27,14 +27,14 @@ name="xiaoming"
 
 使用变量：
 
-```shell
+```sh
 name="xiaoming"
 echo $name
 ```
 
 只读变量：在变量前面加`readonly`关键字
 
-```shell
+```sh
 myUrl="http://see.xidian.edu.cn/cpp/shell/"
 readonly myUrl
 myUrl="http://see.xidian.edu.cn/cpp/danpianji/"
@@ -42,7 +42,7 @@ myUrl="http://see.xidian.edu.cn/cpp/danpianji/"
 
 删除变量: 在变量前面调用`unset`方法
 
-```shell
+```sh
 my_name="xiaohua"
 unset $my_name
 echo $my_name
