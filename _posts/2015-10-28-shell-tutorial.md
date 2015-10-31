@@ -265,7 +265,6 @@ length=${#array_name[@]}
 
 ```sh
 if [ expression ]
-
 then
    Statement(s) to be executed if expression is true
 fi
