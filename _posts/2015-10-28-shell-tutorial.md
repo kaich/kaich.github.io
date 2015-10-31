@@ -262,13 +262,16 @@ length=${#array_name[@]}
 和其他语言一样if有三种形式，如果熟悉其他语言，记住它与其他语言的语法格式区别。
 
 * if 
+
 ```sh
 if [ expression ]
+
 then
    Statement(s) to be executed if expression is true
 fi
-``
+```
 * if else
+
 ```sh
 if [ expression ]
 then
@@ -277,7 +280,9 @@ else
    Statement(s) to be executed if expression is not true
 fi
 ```
+
 *if elif
+
 ```sh
 if [ expression 1 ]
 then
