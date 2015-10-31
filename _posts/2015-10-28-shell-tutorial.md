@@ -97,9 +97,10 @@ do
     echo "$var"
 done
 ```
+
 执行`sh test.sh a b c d`会输出以下的结果：
 
-```shell
+```sh
 print each param from $@
 a
 b
