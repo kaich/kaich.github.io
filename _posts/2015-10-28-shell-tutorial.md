@@ -220,12 +220,10 @@ sh里没有多行注释，只能每一行加一个#号
 * {#string}	$string的长度	 
 * ${string:position}	在$string中, 从位置$position开始提取子串
 * ${string:position:length}	在$string中, 从位置$position开始提取长度为$length的子串
- 	 
 * ${string#substring}	从变量$string的开头, 删除最短匹配$substring的子串
 * ${string##substring}	从变量$string的开头, 删除最长匹配$substring的子串
 * ${string%substring}	从变量$string的结尾, 删除最短匹配$substring的子串
 * ${string%%substring}	从变量$string的结尾, 删除最长匹配$substring的子串
- 	 
 * ${string/substring/replacement}	使用$replacement, 来代替第一个匹配的$substring
 * ${string//substring/replacement}	使用$replacement, 代替所有匹配的$substring
 * ${string/#substring/replacement}	如果$string的前缀匹配$substring, 那么就用* $ 
@@ -236,3 +234,87 @@ sh里没有多行注释，只能每一行加一个#号
 string="alibaba is a great company"
 echo ${string:1:4} #输出lib
 ```
+
+####数组
+数组可以用一下方式来定义
+
+```sh
+array_name=(value0 value1 value2 value3)
+```
+还可以单独定义数组的各个分量：
+```sh
+array_name[0]=value0
+```
+读取数组元素值的一般格式是:
+```sh
+value=${array_name[2]}
+```
+关于Array的一些方法会和字符串的一些类似，可以试着用字符串的方法在数组上尝试使用：
+
+获取数组长度：
+```sh
+length=${#array_name[@]}
+```
+
+####控制
+`在shell中控制语句的作用域结尾都是该控制符单词的翻转`,例如if...fi.
+#####if语句
+和其他语言一样if有三种形式，如果熟悉其他语言，记住它与其他语言的语法格式区别。
+
+* if 
+```sh
+if [ expression ]
+then
+   Statement(s) to be executed if expression is true
+fi
+``
+* if else
+```sh
+if [ expression ]
+then
+   Statement(s) to be executed if expression is true
+else
+   Statement(s) to be executed if expression is not true
+fi
+```
+*if elif
+```sh
+if [ expression 1 ]
+then
+   Statement(s) to be executed if expression 1 is true
+elif [ expression 2 ]
+then
+   Statement(s) to be executed if expression 2 is true
+elif [ expression 3 ]
+then
+   Statement(s) to be executed if expression 3 is true
+else
+   Statement(s) to be executed if no expression is true
+fi
+```
+
+#####case 语句
+其他语言中的swith控制。
+
+```sh
+case 值 in
+模式1)
+    command1
+    command2
+    command3
+    ;;
+模式2）
+    command1
+    command2
+    command3
+    ;;
+*)
+    command1
+    command2
+    command3
+    ;;
+esac
+```
+case工作方式如上所示。取值后面必须为关键字 in，每一模式必须以右括号结束。取值可以为变量或常数。匹配发现取值符合某一模式后，其间所有命令开始执行直至 ;;。;; 与其他语言中的 break 类似，意思是跳到整个 case 语句的最后。
+
+取值将检测匹配的每一个模式。一旦模式匹配，则执行完匹配模式相应命令后不再继续其他模式。如果无一匹配模式，使用星号 * 捕获该值，再执行后面的命令。
