@@ -555,20 +555,27 @@ $ command > /dev/null
 
 Shell 中包含脚本可以使用：
 复制纯文本新窗口
+
 ```sh
 . filename
 ```
+
 或
+
 ```sh
 source filename
 ```
+
 两种方式的效果相同，简单起见，一般使用点号(.)，但是注意点号(.)和文件名中间有一空格。
 
 例如，创建两个脚本，一个是被调用脚本 subscript.sh，内容如下：
+
 ```sh
 url="http://see.xidian.edu.cn/cpp/view/2738.html"
 ```
+
 一个是主文件 main.sh，内容如下：
+
 ```sh
 . ./subscript.sh
 echo $url
@@ -578,6 +585,7 @@ $chomd +x main.sh
 http://see.xidian.edu.cn/cpp/view/2738.html
 $
 ```
+
 注意：被包含脚本不需要有执行权限。
 
 
