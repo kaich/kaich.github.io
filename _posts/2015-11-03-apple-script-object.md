@@ -1,5 +1,5 @@
 layout: post
-title: 
+title: AppleScript（二）脚本对象
 ---
 
 脚本对象是用户结合方法和数据自定义的对象。脚本对象支持继承。
