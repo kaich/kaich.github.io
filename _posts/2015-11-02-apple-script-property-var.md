@@ -1,3 +1,4 @@
+---
 layout: post
 title: AppleScript（一）变量和属性
 ---

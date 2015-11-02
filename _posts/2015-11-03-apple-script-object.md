@@ -1,3 +1,4 @@
+---
 layout: post
 title: AppleScript（二）脚本对象
 ---
