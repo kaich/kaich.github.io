@@ -168,6 +168,12 @@ echo `expr 2 + 2`
 * ==	相等。用于比较两个数字，相同则返回 true。	[ $a == $b ] 返回 false。
 * !=	不相等。用于比较两个数字，不相同则返回 true。
 
+```sh
+val=`expr $a \* $b`
+echo "a * b : $val"
+```
+
+
 关系运算符：
 
 * -eq	检测两个数是否相等，相等返回 true。	[ $a -eq $b ] 返回 true。
@@ -177,11 +183,32 @@ echo `expr 2 + 2`
 * -ge	检测左边的数是否大等于右边的，如果是，则返回 true。	[ $a -ge $b ] 返回 false。
 * -le	检测左边的数是否小于等于右边的，如果是，则返回 true。	[ $a -le $b ] 返回 true。
 
+```sh
+a=10
+b=20
+if [ $a -eq $b ]
+then
+   echo "$a -eq $b : a is equal to b"
+else
+   echo "$a -eq $b: a is not equal to b"
+fi
+```
+
 布尔运算符：
 
 * !	非运算，表达式为 true 则返回 false，否则返回 true。	[ ! false ] 返回 true。
 * -o	或运算，有一个表达式为 true 则返回 true。	[ $a -lt 20 -o $b -gt 100 ] 返回 true。
 * -a	与运算，两个表达式都为 true 才返回 true。	[ $a -lt 20 -a $b -gt 100 ] 返回 false。
+
+```sh
+if [ $a -lt 100 -a $b -gt 15 ]
+then
+   echo "$a -lt 100 -a $b -gt 15 : returns true"
+else
+   echo "$a -lt 100 -a $b -gt 15 : returns false"
+fi
+```
+
 
 字符串运算符:
 
@@ -190,6 +217,16 @@ echo `expr 2 + 2`
 * -z	检测字符串长度是否为0，为0返回 true。	[ -z $a ] 返回 false。
 * -n	检测字符串长度是否为0，不为0返回 true。	[ -z $a ] 返回 true。
 * str	检测字符串是否为空，不为空返回 true。	[ $a ] 返回 true。
+
+```sh
+if [ -z $a ]
+then
+   echo "-z $a : string length is zero"
+else
+   echo "-z $a : string length is not zero"
+fi
+```
+
 
 文件测试运算符:
 
@@ -206,6 +243,17 @@ echo `expr 2 + 2`
 * -x file	检测文件是否可执行，如果是，则返回 true。	[ -x $file ] 返回 true。
 * -s file	检测文件是否为空（文件大小是否大于0），不为空返回 true。	[ -s $file ] 返回 true。
 * -e file	检测文件（包括目录）是否存在，如果是，则返回 true。	[ -e $file ] 返回 true。
+
+```sh
+file="/var/www/tutorialspoint/unix/test.sh"
+if [ -r $file ]
+then
+   echo "File has read access"
+else
+   echo "File does not have read access"
+fi
+```
+
 
 ####注释
 sh里没有多行注释，只能每一行加一个#号
@@ -322,3 +370,215 @@ esac
 case工作方式如上所示。取值后面必须为关键字 in，每一模式必须以右括号结束。取值可以为变量或常数。匹配发现取值符合某一模式后，其间所有命令开始执行直至 ;;。;; 与其他语言中的 break 类似，意思是跳到整个 case 语句的最后。
 
 取值将检测匹配的每一个模式。一旦模式匹配，则执行完匹配模式相应命令后不再继续其他模式。如果无一匹配模式，使用星号 * 捕获该值，再执行后面的命令。
+
+#####for 语句
+```sh
+for 变量 in 列表
+do
+    command1
+    command2
+    ...
+    commandN
+done
+```
+例子：
+```sh
+for loop in 1 2 3 4 5
+do
+    echo "The value is: $loop"
+done
+```
+
+#####while 语句
+```sh
+while command
+do
+   Statement(s) to be executed if command is true
+done
+```
+例子：
+while循环可用于读取键盘信息。下面的例子中，输入信息被设置为变量FILM，按<Ctrl-D>结束循环。
+复制纯文本新窗口
+
+```sh
+echo 'type <CTRL-D> to terminate'
+echo -n 'enter your most liked film: '
+while read FILM
+do
+    echo "Yeah! great film the $FILM"
+done
+```
+
+#####until 语句
+until 循环执行一系列命令直至条件为 true 时停止。until 循环与 while 循环在处理方式上刚好相反。一般while循环优于until循环，但在某些时候，也只是极少数情况下，until 循环更加有用
+
+```sh
+until command
+do
+   Statement(s) to be executed until command is true
+done
+```
+例如，使用 until 命令输出 0 ~ 9 的数字：
+复制纯文本新窗口
+
+```sh
+a=0
+until [ ! $a -lt 10 ]
+do
+   echo $a
+   a=`expr $a + 1`
+done
+```
+
+#####break和conntinue
+* break命令允许跳出所有循环（终止执行后面的所有循环）
+* continue它不会跳出所有循环，仅仅跳出当前循环。
+
+#####函数
+函数可以让我们将一个复杂功能划分成若干模块，让程序结构更加清晰，代码重复利用率更高。像其他编程语言一样，Shell 也支持函数。Shell 函数必须先定义后使用。
+
+删除函数使用`unset -f [function_name]`
+
+* $#	传递给函数的参数个数。
+* $*	显示所有传递给函数的参数。
+* $@	与$*相同，但是略有区别，请查看Shell特殊变量。
+* $?	函数的返回值。
+
+```sh
+function_name () {
+    list of commands
+    [ return value ]
+}
+```
+
+例如：
+
+```sh
+number_one () {
+   echo "Url_1 is http://see.xidian.edu.cn/cpp/shell/"
+   number_two
+}
+number_two () {
+   echo "Url_2 is http://see.xidian.edu.cn/cpp/u/xitong/"
+}
+number_one
+```
+
+#####重定向
+######命令输出重定向的语法为：
+
+* 输出重定向会覆盖文件内容,如果不希望文件内容被覆盖，可以使用 >> 追加到文件末尾
+
+```sh
+$ command > file
+```
+
+例如：
+
+```sh
+$ echo line 2 >> users
+```
+
+文档文本：
+```sh
+command << delimiter
+    document
+delimiter
+```
+它的作用是将两个 delimiter 之间的内容(document) 作为输入传递给 command。
+
+######：命令输入重定向的语法为：
+```sh
+command < file
+```
+例如，计算 users 文件中的行数，可以使用下面的命令：
+
+```sh
+wc -l users
+users
+```
+也可以将输入重定向到 users 文件：
+```sh
+wc -l < users
+```
+注意：上面两个例子的结果不同：第一个例子，会输出文件名；第二个不会，因为它仅仅知道从标准输入读取内容。
+
+一般情况下，每个 Unix/Linux 命令运行时都会打开三个文件：
+
+* 标准输入文件(stdin)：stdin的文件描述符为0，Unix程序默认从stdin读取数据。
+* 标准输出文件(stdout)：stdout 的文件描述符为1，Unix程序默认向stdout输出数据。
+* 标准错误文件(stderr)：stderr的文件描述符为2，Unix程序会向stderr流中写入错误信息。
+
+如果希望 stderr 重定向到 file，可以这样写：
+```sh
+$command 2 > file
+```
+如果希望 stderr 追加到 file 文件末尾，可以这样写：
+```sh
+$command 2 >> file
+```
+2 表示标准错误文件(stderr)。
+
+如果希望将 stdout 和 stderr 合并后重定向到 file，可以这样写：
+```sh
+$command > file 2>&1
+```
+或
+```sh
+$command >> file 2>&1
+```
+如果希望对 stdin 和 stdout 都重定向，可以这样写：
+```sh
+$command < file1 >file2
+```
+command 命令将 stdin 重定向到 file1，将 stdout 重定向到 file2。 
+
+* command > file	将输出重定向到 file。
+* command < file	将输入重定向到 file。
+* command >> file	将输出以追加的方式重定向到 file。
+* n > file	将文件描述符为 n 的文件重定向到 file。
+* n >> file	将文件描述符为 n 的文件以追加的方式重定向到 file。
+* n >& m	将输出文件 m 和 n 合并。
+* n <& m	将输入文件 m 和 n 合并。
+* << tag	将开始标记 tag 和结束标记 tag 之间的内容作为输入。
+
+注意：
+
+* `如果希望执行某个命令，但又不希望在屏幕上显示输出结果，那么可以将输出重定向到 /dev/null：`
+
+```sh
+$ command > /dev/null
+```
+
+#####文件包含
+像其他语言一样，Shell 也可以包含外部脚本，将外部脚本的内容合并到当前脚本。
+
+Shell 中包含脚本可以使用：
+复制纯文本新窗口
+```sh
+. filename
+```
+或
+```sh
+source filename
+```
+两种方式的效果相同，简单起见，一般使用点号(.)，但是注意点号(.)和文件名中间有一空格。
+
+例如，创建两个脚本，一个是被调用脚本 subscript.sh，内容如下：
+```sh
+url="http://see.xidian.edu.cn/cpp/view/2738.html"
+```
+一个是主文件 main.sh，内容如下：
+```sh
+. ./subscript.sh
+echo $url
+执行脚本：
+$chomd +x main.sh
+./main.sh
+http://see.xidian.edu.cn/cpp/view/2738.html
+$
+```
+注意：被包含脚本不需要有执行权限。
+
+
+关于这篇文章大部分获取自[shell教程](http://c.biancheng.net/cpp/view/6994.html).仅供自己学习。由于原文章仅仅适合快速入门或者不求甚解的人，以后随着自己知识累计会增删该文章。
