@@ -12,7 +12,7 @@ title: AppleScript（四）类
 #####alias
 持久性的指向一个存在的文件系统中的文件，文件夹或者声音。
 
-alias对象的属性：
+######alias对象的属性：
 
 * class
 
@@ -28,11 +28,11 @@ alias对象的属性：
  	
  	The POSIX-style path to the object.
  	
-强制转换支持：
+######强制转换支持：
 alias -> text
 alias -> list
 
-实例：
+######实例：
 
 ```applescript
 set zApp to choose application as alias -- (then choose Finder.app)
@@ -56,7 +56,7 @@ POSIX path of zApp --result: "/System/Library/CoreServices/Finder.app/"
 
 下面描述了`application`对象所有的属性。但是根据不同的程序可能还有一些附加的属性，这看是什么程序。
 
-application对象的属性：
+######application对象的属性：
 
 * class
  	* Access:	read only
@@ -109,10 +109,10 @@ application对象的属性：
  	
  	Starting in AppleScript 2.0, accessing this property returns the application version as text without launching the application or sending it an event.
  	
- 强制转换：
+######强制转换：
  application -> list
  
- 实例：
+######实例：
  你确定你当前电脑上面的应用是否在运行（在远端电脑上不会有任何作用）
  
  ```applescript
@@ -141,7 +141,7 @@ application "/Applications/TextEdit.app"
 
 你可以通过`tell`语句来指定远端应用。详情[“Remote Applications”](https://developer.apple.com/library/mac/documentation/AppleScript/Conceptual/AppleScriptLangGuide/conceptual/ASLR_fundamentals.html#//apple_ref/doc/uid/TP40000983-CH218-SW9)
 
-特别注意：
+######特别注意：
 Starting in OS X v10.5, there are several changes in application behavior
 
 * 应用程序启动隐藏
@@ -155,7 +155,7 @@ Starting in OS X v10.5, there are several changes in application behavior
 #####boolean
 逻辑判断值， `true`或者`false`.
 
-boolean对象的属性
+######boolean对象的属性
 * class
 
  	* Access:	read only
@@ -163,7 +163,7 @@ boolean对象的属性
  	
  	The class identifier for the object. The value is always boolean.
 	
-运算符：
+######运算符：
 
 boolean可以结合`and`, `or`, `not`, `&`, `=`, 和 `≠`来运算。同样可以用`is equal to`,`is not equal to`,`equals`和其他的。
 
@@ -175,7 +175,7 @@ boolean可以结合`and`, `or`, `not`, `&`, `=`, 和 `≠`来运算。同样可�
 ```applescript
 true & false --result: {true, false}
 ```
-实例：
+######实例：
 
 ```applescript
 true
@@ -187,7 +187,7 @@ paragraphCount > 2
 对象或者值的class
 所有的类都有这个属性，它的值是一个标识符。
 
-class对象的属性：
+######class对象的属性：
 
 * class
  	* Access:	read only
@@ -195,7 +195,7 @@ class对象的属性：
  	
  	The class identifier for the object. The value of this property is always class.
  
-操作符：
+######操作符：
 它可以利用`&`,`=`,`≠`和`as`来进行运算。
 
 可以利用`as`来进行强制转换。以下把text 转换为 real：
@@ -204,11 +204,11 @@ class对象的属性：
 "1.5" as real --result: 1.5
 ```
 
-强制转换：
+######强制转换：
 class -> list	
 class -> text
 
-实例：
+######实例：
 
 ```applescript
 class of text --result: class
@@ -221,7 +221,7 @@ class of true --result: boolean
 
 常数一般用于枚举类型。您不能定义在脚本中的常数;常数可以仅通过应用程序和由AppleScript的定义。更多参考[Constants in AppleScript](https://developer.apple.com/library/mac/documentation/AppleScript/Conceptual/AppleScriptLangGuide/conceptual/ASLR_fundamentals.html#//apple_ref/doc/uid/TP40000983-CH218-BAJBDEJI)
 
-constant对象的属性：
+######constant对象的属性：
 
 * class
  	* Access:	read-only
@@ -229,10 +229,10 @@ constant对象的属性：
  	
  	The class identifier for the object. The value of this property is always constant.
  	
- 操作符：	
+######操作符：	
  `&`, `=`, `≠`, 和 `as`
  
- 实例：
+######实例：
  
  除了由AppleScript的定义的常量，应用程序通常定义用于命令参数或属性值枚举类型。例如，iTunes的搜索命令定义了这些常数的指定搜索areaIn除了由AppleScript的定义的常量，应用程序通常定义用于命令参数或属性值枚举类型。例如，iTunes的搜索命令定义这些常数用于指定搜索区域
  
@@ -243,7 +243,7 @@ end considering
 class of hyphens --result: constant
  ```
  
- #####date
+#####date
  一个星期的第几天，日期和时间。
 
 获取当前时间用`current date`:
@@ -254,7 +254,7 @@ set theDate to current date
 ```
 可以通过它的属性获取`date`的不同的部分。
 
-date对象的属性：	
+######date对象的属性：	
 
 * class
  	* Access:	read only
@@ -306,10 +306,10 @@ date对象的属性：
  	
  	A text object that specifies the time portion of a date object; for example, "3:20:24 PM".
  	
-操作符：
+######操作符：
 `&`, `+`, `–`, `=`, `≠`, `>`, `≥`, `<`, `≤`, `comes before`, `comes after`, and `as`.
 
-date的加减操作：
+######date的加减操作：
 
 ```applescript
 date + timeDifference
@@ -338,11 +338,11 @@ date "Friday, November 9, 2007" + 4 * days + 3 * hours + 2 *  minutes
 --result: date "Tuesday, November 13, 2007 3:02:00 AM"
 ```
 
-强制装换：
+######强制装换：
 date -> list
 date -> text
 
-实例：
+######实例：
 
 ```applescript
 date "8/9/2007, 17:06"
@@ -378,7 +378,7 @@ set myDate to date "3/4/2008"
 #####file
 文件系统中文件，文件夹或者卷的引用。和`alias`有相同的属性。不一样的是，它可以指向不存在的。
 
-强制转换：	
+######强制转换：	
 file -> text
 file -> list
 
@@ -392,7 +392,7 @@ close access fp
 #####integer
 整数
 
-integer的属性：
+######integer的属性：
 
 * class
  	* Access:	read-only
@@ -400,10 +400,10 @@ integer的属性：
  	
  	The class identifier for the object. The value of this property is always integer.
  	
-操作符：	
+######操作符：	
  `+`, `-`, `*`, `÷` (或者 `/`), `div`, `mod`, `^`, `=`, `≠`, `>`, `≥`, `<`, 和 `≤`
  
-实例：	
+######实例：	
 和其他的语言没太大区别
 
 ```applescript
@@ -414,7 +414,7 @@ class of myCount --result: integer
 #####list
 有序集合。里面的每一项可以属于任何类。空list可以用{}.
 
-list的属性：
+######list的属性：
 
 * class
  	* Access:	read-only
@@ -448,7 +448,7 @@ list的属性：
   item 2 of {"soup", 2, "nuts"} --result: 2
   ```
   
-操作符：
+######操作符：
 `&`, `=`, `≠`, `starts with`, `ends with`, `contains`, 和 `is contained by`.
   
 命令：	
@@ -458,14 +458,14 @@ count {"a", "b", "c", 1, 2, 3} --result: 6
 length of {"a", "b", "c", 1, 2, 3} --result: 6
 ```
 
-强制转换：	
+######强制转换：	
 AppleScript支持只有一个元素的数组转换成任何类。也可以任意的数组转化成`text`。
 
 ```applescript
 {5, "George", 11.43, "Bill"} as text --result: "5George11.43Bill"
 ```
 
-实例：	
+######实例：	
 
 ```applescript
 class of {"this", "is", "a", "list"} --result: list
