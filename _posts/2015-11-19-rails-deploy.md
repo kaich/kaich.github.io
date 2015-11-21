@@ -131,17 +131,28 @@ CREATE DATABASE your_production_db_name CHARACTER SET utf8;
 
 ###问题：
 1. bundle stderr: /usr/bin/env: bundle: No such file or directory Capistrano
-	解决方法：项目中添加`gem 'capistrano-rvm'`.可以参考[这里](http://stackoverflow.com/questions/19716131/usr-bin-env-ruby-no-such-file-or-directory-using-capistrano-3-capistrano-rben)
+
+		解决方法：项目中添加`gem 'capistrano-rvm'`.可以参考[这里](http://stackoverflow.com/questions/19716131/usr-bin-env-ruby-no-such-file-or-directory-using-capistrano-3-capistrano-rben)
+		
 2. An error occurred while installing json (1.8.3), and Bundler cannot continue.
-	解决方法:`sudo apt-get install ruby-dev`
+
+		解决方法:`sudo apt-get install ruby-dev`
+		
 3. git stderr: /usr/bin/env: git: No such file or directory
-	解决方法：`apt-get install git-core`
+
+		解决方法：`apt-get install git-core`
+		
 4. Cannot install NodeJs: /usr/bin/env: node: No such file or directory
-	解决方法:`sudo ln -s "$(which nodejs)" /usr/bin/node`
+
+		解决方法:`sudo ln -s "$(which nodejs)" /usr/bin/node`
+		
 5. 访问修改文件的时候出现permission deny问题
-	解决方法:尝试在命令前面加sudo , 获取查看文件路径是否存在。
+
+		解决方法:尝试在命令前面加sudo , 获取查看文件路径是否存在。
+		
 6. 服务器所有的asset都报404错误
-	解决方法: 首先你再部署之前`RAILS_ENV=production bin/rake assets:precompile`去预编译asset。如果还是有这个问题升级你的rails和gems。[参考](https://github.com/capistrano/rails/issues/111)
+
+		解决方法: 首先你再部署之前`RAILS_ENV=production bin/rake assets:precompile`去预编译asset。如果还是有这个问题升级你的rails和gems。[参考](https://github.com/capistrano/rails/issues/111)
 
 由于rails-asset服务器不稳定问题。于是改投[bower-rails](https://github.com/rharriso/bower-rails/)。记住在服务器上装nodejs的相关环境。
 例如：
