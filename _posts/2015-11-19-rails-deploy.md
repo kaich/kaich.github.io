@@ -11,13 +11,17 @@ title: rails 部署
 上一次买了个vps搭建博客其他常用工具。昨天为了部署自己写的rails的网站，于是在[版瓦工]()上面又买了一个vps.在部署的工程中可谓是各种坑啊。于是记录下，历经了三天的时候才粗略部署上去。首先在部署到服务器之前先在自己本地用production跑一下，不要盲目的直接上传，最后导致不知道是自己配置问题还是服务器配置问题。我就花了很多时间在这个坑上。
 
 首先预编译assets
+
 ```sh
 RAILS_ENV=production bin/rake assets:precompile
 ```
+
 然后在本地以production环境运行server:
+
 ```sh
 rails server --environment=production
 ```
+
 在这个过程中遇到了asset无法访问的问题。解决方案参考[这里](http://stackoverflow.com/questions/18700219/rails-4-assets-not-loading-in-production)
 
 
