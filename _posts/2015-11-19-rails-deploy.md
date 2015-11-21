@@ -24,6 +24,7 @@ rails server --environment=production
 
 在这个过程中遇到了asset无法访问的问题。解决方案参考[这里](http://stackoverflow.com/questions/18700219/rails-4-assets-not-loading-in-production)
 
+后来又遇到bootstrap-sass 的 Glyphicons 不显示的问题。解决方案草考[这里](https://ruby-china.org/topics/28140),是版本问题。
 
 ###环境
 
